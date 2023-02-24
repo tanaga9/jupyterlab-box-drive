@@ -13,6 +13,13 @@ import { listIcon, folderIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
 
+function loadJS(FILE_URL: string) {
+  let scriptElement = document.createElement("script");
+  scriptElement.setAttribute("src", FILE_URL);
+  scriptElement.setAttribute("type", "text/javascript");
+  document.body.appendChild(scriptElement);
+}
+
 /**
  * Initialization data for the jupyterlab-box-drive extension.
  */
@@ -31,13 +38,17 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const { createFileBrowser } = browser;
 
     const trans = translator.load('jupyterlab-box-drive');
+
+    loadJS("/files/src/BoxSdk.js");
+    // loadJS("/BoxSdk.js");
+    // loadJS("/build/BoxSdk.js");
     const drive = new BoxDrive();
 
     serviceManager.contents.addDrive(drive);
 
     const widget = createFileBrowser('jp-box-browser', {
       driveName: drive.name,
-      restore: false
+      restore: true
     });
     widget.title.caption = trans.__('Box');
     widget.title.icon = listIcon;
@@ -45,7 +56,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const openDirectoryButton = new ToolbarButton({
       icon: folderIcon,
       onClick: async () => {
-        widget.model.cd('/');
+        window.open('/static/lab/auth.html', '_blank');
       },
       tooltip: trans.__('Log in - Box')
     });
