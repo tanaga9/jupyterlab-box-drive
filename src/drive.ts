@@ -36,7 +36,6 @@ function get_file_id(path: string): string {
   } else {
     id = m[1]
   }
-  console.log(id)
   return id
 }
 
@@ -49,7 +48,6 @@ function get_file_name(path: string): string {
   } else {
     name = m[1]
   }
-  console.log(name)
   return name
 }
 
@@ -200,8 +198,7 @@ export class BoxDrive implements Contents.IDrive {
 
     const file = new File([contentBlob], name, {type: ""})
     formData.append(name, file);
-    var r = await client.files.upload({body: formData})
-    console.log(r)
+    await client.files.upload({body: formData})
 
     return this.get(path);
   }
