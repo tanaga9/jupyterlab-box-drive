@@ -24,9 +24,8 @@ COPY . /work
 
 CMD pip install -ve . && \
     jupyter labextension develop --overwrite . && \
-    cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/BoxSdk.js && \
+    cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/. && \
     cp /work/src/auth.html /opt/conda/envs/jupyterlab-ext/share/jupyter/lab/static/. && \
     jupyter lab --no-browser --port=8888 --ip=0.0.0.0 --allow-root --NotebookApp.token=''
     # jupyter lite build --minimize=False --force --output-dir build  && \
-    # cp /box-javascript-sdk/lib/BoxSdk.min.js /work/build/BoxSdk.js && \
     # jupyter lite serve --port=8888 --ip=0.0.0.0 --output-dir build

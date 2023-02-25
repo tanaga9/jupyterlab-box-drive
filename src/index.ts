@@ -39,9 +39,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     const trans = translator.load('jupyterlab-box-drive');
 
-    loadJS("/files/src/BoxSdk.js");
-    // loadJS("/BoxSdk.js");
-    // loadJS("/build/BoxSdk.js");
+    loadJS("/files/src/BoxSdk.min.js");
     const drive = new BoxDrive();
 
     serviceManager.contents.addDrive(drive);
