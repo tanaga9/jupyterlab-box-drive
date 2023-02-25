@@ -9,7 +9,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ITranslator } from '@jupyterlab/translation';
 
-import { listIcon, folderIcon } from '@jupyterlab/ui-components';
+import { treeViewIcon, launchIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
 
@@ -51,10 +51,10 @@ const plugin: JupyterFrontEndPlugin<void> = {
       restore: true
     });
     widget.title.caption = trans.__('Box');
-    widget.title.icon = listIcon;
+    widget.title.icon = treeViewIcon;
 
     const getTokenButton = new ToolbarButton({
-      icon: folderIcon,
+      icon: launchIcon,
       onClick: async () => {
         window.open('/static/lab/auth.html', '_blank');
       },

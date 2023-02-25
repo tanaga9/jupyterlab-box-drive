@@ -72,7 +72,7 @@ export class BoxDrive implements Contents.IDrive {
     return ServerConnection.makeSettings();
   }
 
-  get fileChanged(): ISignal<Contents.IDrive, Contents.IChangedArgs> {
+  get fileChanged(): ISignal<this, Contents.IChangedArgs> {
     return this._fileChanged;
   }
 
@@ -196,11 +196,23 @@ export class BoxDrive implements Contents.IDrive {
       formData.append('id', get_file_id(path));
     }
 
-    const file = new File([contentBlob], name, {type: ""})
+    const last_modified = new Date()
+    const file = new File([contentBlob], name, {
+      type: "",
+      lastModified: last_modified.getTime(),
+    })
     formData.append(name, file);
     await client.files.upload({body: formData})
 
-    return this.get(path);
+    this._fileChanged.emit({
+      type: 'save',
+      oldValue: null,
+      newValue: contentBlob
+    });
+
+    var clientn = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    var id = get_file_id(path);
+    return this.get_file_content(clientn, id, path, options, last_modified)
   }
 
   async copy(path: string, toLocalDir: string): Promise<Contents.IModel> {
@@ -237,6 +249,7 @@ export class BoxDrive implements Contents.IDrive {
     id: string,
     path: string,
     options?: Contents.IFetchOptions,
+    last_modified?: Date
   ): Promise<Contents.IModel> {
     var opt = client.files.get({id: id, params: {fields: [
       "id",
@@ -277,6 +290,10 @@ export class BoxDrive implements Contents.IDrive {
       type = "file"
     }
   
+    /*
+      File and Output Formats
+      https://jupyterlab.readthedocs.io/en/stable/user/file_formats.html
+    */
     let format: Contents.FileFormat;
     var mimetype = r_content.headers.get('content-type')
     if (mimetype == null) {
@@ -285,7 +302,10 @@ export class BoxDrive implements Contents.IDrive {
     } else if (['ipynb'].includes(res_json.extension)) {
       mimetype = ""
       format = 'json';
-    } else if (['md'].includes(res_json.extension)) {
+    } else if (
+      ['md', 'yml', 'yaml', 'json'].includes(res_json.extension) ||
+      ["application/x-javascript", "image/svg+xml"].includes(mimetype)
+    ) {
       mimetype = "text/plain"
       format = 'text';
     } else if (mimetype == "application/json") {
@@ -308,11 +328,18 @@ export class BoxDrive implements Contents.IDrive {
       fileContent = arrayBufferToBase64(await r_content.arrayBuffer())
     }
   
+    var last_modified_str: string
+    if (last_modified) {
+      last_modified_str = last_modified.toISOString()
+    } else {
+      last_modified_str = new Date(res_json.content_modified_at).toISOString()
+    }
+
     return {
       name: res_json.name,
       path: PathExt.join(path, res_json.name),
       created: new Date(res_json.content_created_at).toISOString(),
-      last_modified: new Date(res_json.content_modified_at).toISOString(),
+      last_modified: last_modified_str,
       format,
       mimetype,
       content: fileContent,
@@ -322,7 +349,5 @@ export class BoxDrive implements Contents.IDrive {
   }
 
   private _isDisposed = false;
-  private _fileChanged = new Signal<Contents.IDrive, Contents.IChangedArgs>(
-    this
-  );
+  private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
 }

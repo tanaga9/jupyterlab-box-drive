@@ -18,6 +18,8 @@ RUN cd /work && pip install -ve .
 WORKDIR /work
 EXPOSE 8888
 
+RUN pip install jupyterlab-favorites ipydrawio
+
 COPY . /work
 
 CMD pip install -ve . && \
