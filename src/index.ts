@@ -53,15 +53,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
     widget.title.caption = trans.__('Box');
     widget.title.icon = listIcon;
 
-    const openDirectoryButton = new ToolbarButton({
+    const getTokenButton = new ToolbarButton({
       icon: folderIcon,
       onClick: async () => {
         window.open('/static/lab/auth.html', '_blank');
       },
       tooltip: trans.__('Log in - Box')
     });
-
-    widget.toolbar.insertItem(0, 'open-directory', openDirectoryButton);
+    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
 
     app.shell.add(widget, 'left');
   }

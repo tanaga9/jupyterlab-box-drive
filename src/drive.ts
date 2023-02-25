@@ -8,6 +8,8 @@ declare var BoxSdk: any;
 
 export const DRIVE_NAME = 'Box';
 
+export const LOCAL_STORAGE_TOKEN_KEY = 'AccessToken';
+
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -17,6 +19,23 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
 
   return window.btoa(binary);
+}
+
+function build_path(path: string, name: string, id: string): string {
+  return PathExt.join(path, id + ": " + name)
+}
+
+function get_file_id(path: string): string {
+  var filename = path.replace(/^.*[\\\/]/, '')
+  var id;
+  var m = filename.match(/([0-9]+): .*/)
+  if (path == '' || m == null) {
+    id = "0"
+  } else {
+    id = m[1]
+  }
+  console.log(id)
+  return id
 }
 
 export class BoxDrive implements Contents.IDrive {
@@ -48,18 +67,12 @@ export class BoxDrive implements Contents.IDrive {
     path: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
-    var accessToken = localStorage.getItem('AccessToken');
+    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
     var box = new BoxSdk();
     var client = new box.BasicBoxClient({accessToken: accessToken, noRequestMode: true});
-    var id;
-    var m = path.match(/.* :([0-9]+)/)
-    if (path == '' || m == null) {
-      id = "0"
-    } else {
-      id = m[1]
-    }
+    var id = get_file_id(path);
 
-    if (options && 'type' in options && options.type == 'file') {
+    if (options && 'type' in options && (options.type == 'file' || options.type == 'notebook')) {
       var opt = client.files.get({id: id, params: {fields: [
         "id",
         "name",
@@ -74,8 +87,9 @@ export class BoxDrive implements Contents.IDrive {
         "size"
       ].join(",")}});
       var r = await fetch(opt.url, {
-          method: opt.method,
-          headers: opt.headers,
+        method: opt.method,
+        headers: opt.headers,
+        cache: "no-store"
       })
       const res_json = await r.json();
       // console.log(res_json)
@@ -83,29 +97,36 @@ export class BoxDrive implements Contents.IDrive {
       const url = new URL(opt.url);
       var url_content = [url.protocol, '//', url.host, url.pathname + "/content"].join('')
       var r_content = await fetch(url_content, {
-          method: opt.method,
-          headers: opt.headers,
+        method: opt.method,
+        headers: opt.headers,
+        cache: "no-store"
       })
 
+      let type: Contents.ContentType = options.type
       let format: Contents.FileFormat;
-      var filetype
-      if ([
-        'html', 'txt', 'md', 'text',
-      ].includes(res_json.extension)) {
-        format = "text"
-        filetype = "text/plain"
-      } else if ([
-        'json', 'ipynb',
-      ].includes(res_json.extension)) {
-        format = "text"
-        filetype = "application/json"
+      var mimetype = r_content.headers.get('content-type')
+      if (mimetype == null) {
+        mimetype = "text/plain"
+        format = 'text';
+      } else if (['ipynb'].includes(res_json.extension)) {
+        mimetype = ""
+        format = 'json';
+      } else if (mimetype == "application/json") {
+        format = 'json';
+      } else if (mimetype && mimetype.split('/')) {
+        if (['text'].includes(mimetype.split('/')[0])) {
+          format = 'text';
+        } else {
+          format = 'base64';
+        }
       } else {
-        format = 'base64';
-        filetype = "application/pdf"
+        format = 'text';
       }
       var fileContent
       if (format == "text") {
         fileContent = await r_content.text()
+      } else if (type.toString() == "notebook") {
+        fileContent = await r_content.json();
       } else {
         fileContent = arrayBufferToBase64(await r_content.arrayBuffer())
       }
@@ -116,17 +137,18 @@ export class BoxDrive implements Contents.IDrive {
         created: new Date(res_json.content_created_at).toISOString(),
         last_modified: new Date(res_json.content_modified_at).toISOString(),
         format,
-        mimetype: filetype,
+        mimetype,
         content: fileContent,
         writable: true,
-        type: 'file'
+        type
       };
     }
 
     var opt = client.folders.get({id: id, params: {fields: "name,item_collection"}});
     var r = await fetch(opt.url, {
-        method: opt.method,
-        headers: opt.headers,
+      method: opt.method,
+      headers: opt.headers,
+      cache: "no-store"
     })
     const res_json = await r.json();
 
@@ -135,7 +157,7 @@ export class BoxDrive implements Contents.IDrive {
       if (entry.type == "file") {
         content.push({
           name: entry.name,
-          path: PathExt.join(path, entry.name + ' :' + entry.id),
+          path: build_path(path, entry.name, entry.id),
           created: '',
           last_modified: '',
           format: null,
@@ -147,7 +169,7 @@ export class BoxDrive implements Contents.IDrive {
       } else {
         content.push({
           name: entry.name,
-          path: PathExt.join(path, entry.name + ' :' + entry.id),
+          path: build_path(path, entry.name, entry.id),
           created: '',
           last_modified: '',
           format: null,
