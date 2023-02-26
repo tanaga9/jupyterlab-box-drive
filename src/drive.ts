@@ -129,8 +129,50 @@ export class BoxDrive implements Contents.IDrive {
   async newUntitled(
     options?: Contents.ICreateOptions
   ): Promise<Contents.IModel> {
-    throw new Error('Method not implemented.');
-    // return await this.get(PathExt.join("", ""));;
+    let parentPath = ''
+    if (options && options.path) {
+      parentPath = options.path
+    }
+
+    const type = options?.type || 'directory';
+    var name = type === 'directory' ? 'Untitled Folder' : 'untitled'
+    const ext = options?.ext || 'txt';
+
+    let data: Contents.IModel;
+    if (type === 'directory') {
+      /*
+      let i = 1;
+      while (true) {
+        name = `${name} ${i++}`;
+      }
+      */
+      throw new Error('Method not implemented.');
+    } else {
+      let i = 1;
+      while (true) {
+        const newname = `${name}.${ext}`
+        const path = PathExt.join(parentPath, newname)
+        data = await this.save(path, {
+          name: newname,
+          path,
+          content: "",
+          format: "text",
+          type: "file"
+        })
+        name = `${name}${i++}`;
+        if (true) {
+          break
+        }
+      }
+    }
+
+    this._fileChanged.emit({
+      type: 'new',
+      oldValue: null,
+      newValue: data
+    });
+
+    return data;
   }
 
   async delete(path: string): Promise<void> {
@@ -171,7 +213,7 @@ export class BoxDrive implements Contents.IDrive {
     if (options && 'name' in options) {
       name = basename
       formData.append('parent_id', this.get_file_id(dirname));
-      } else {
+    } else {
       name = this.get_file_name(path)
       formData.append('id', this.get_file_id(path));
     }
