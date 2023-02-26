@@ -138,10 +138,11 @@ export class BoxDrive implements Contents.IDrive {
     }
 
     const type = options?.type || 'directory';
-    var name = type === 'directory' ? 'Untitled Folder' : 'untitled'
+    var namebase = type === 'directory' ? 'Untitled Folder' : 'untitled'
     const ext = options?.ext || 'txt';
     const last_modified = new Date()
     var path
+    var entry
     if (type === 'directory') {
       /*
       let i = 1;
@@ -151,6 +152,7 @@ export class BoxDrive implements Contents.IDrive {
       */
       throw new Error('Method not implemented.');
     } else {
+      var name = namebase
       let i = 1;
       while (true) {
         const newname = `${name}.${ext}`
@@ -166,30 +168,28 @@ export class BoxDrive implements Contents.IDrive {
           formData,
           last_modified,
         )
-        name = `${name}${i++}`;
+
+        name = `${namebase} ${i++}`;
         if (!r.ok && r.status == 409) {
           continue
         }
+        const res_json = await r.json();
+        entry = res_json.entries[0]
+        console.log(entry)
         break
       }
     }
 
-    let data: Contents.IModel;
-    try {
-      var id = this.get_file_id(path);
-      data = await this.get_file_content(client, id, path, options, last_modified)
-    } catch (e) {
-      data = {
-        name,
-        path,
-        created: last_modified.toISOString(),
-        last_modified: last_modified.toISOString(),
-        format: "text",
-        mimetype: '',
-        content: null,
-        writable: true,
-        type: 'file'
-      }
+    let data: Contents.IModel = {
+      name: entry.name,
+      path: this.build_path(parentPath, entry.name, entry.id),
+      created: new Date(entry.content_created_at).toISOString(),
+      last_modified: new Date(entry.content_created_at).toISOString(),
+      format: "text",
+      mimetype: '',
+      content: null,
+      writable: true,
+      type: 'file'
     }
 
     this._fileChanged.emit({
@@ -205,9 +205,36 @@ export class BoxDrive implements Contents.IDrive {
     throw new Error('Method not implemented.');
   }
 
-  async rename(oldPath: string, newPath: string): Promise<Contents.IModel> {
-    throw new Error('Method not implemented.');
-    // return this.get(newPath);
+  async rename(path: string, newPath: string): Promise<Contents.IModel> {
+    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
+    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+
+    const id = this.get_file_id(path)
+    const newname = this.get_file_name(newPath)
+    let dirname = PathExt.dirname(path)
+
+    const opt = await client.files.updateInfo({id, name: newname})
+    var r = await fetch(opt.url, {
+      method: opt.method,
+      headers: opt.headers,
+      mode: opt.mode,
+      body: opt.body,
+      cache: "no-store"
+    })
+    const res_json = await r.json();
+    this.build_path(dirname, newname, id)
+
+    return {
+      name: newname,
+      path: newPath,
+      created: new Date(res_json.content_created_at).toISOString(),
+      last_modified: new Date(res_json.content_modified_at).toISOString(),
+      format: "text",
+      mimetype: '',
+      content: null,
+      writable: true,
+      type: 'file'
+    }
   }
 
   async save(
@@ -253,6 +280,8 @@ export class BoxDrive implements Contents.IDrive {
       last_modified
     )
     console.log(r)
+    const res_json = await r.json();
+    console.log(res_json)
 
     this._fileChanged.emit({
       type: 'save',
