@@ -66,6 +66,7 @@ export class BoxDrive implements Contents.IDrive {
     var r = await fetch(opt.url, {
       method: opt.method,
       headers: opt.headers,
+      mode: opt.mode,
       cache: "no-store"
     })
     if (!r.ok) {
@@ -129,6 +130,8 @@ export class BoxDrive implements Contents.IDrive {
   async newUntitled(
     options?: Contents.ICreateOptions
   ): Promise<Contents.IModel> {
+    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
+    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
     let parentPath = ''
     if (options && options.path) {
       parentPath = options.path
@@ -137,8 +140,8 @@ export class BoxDrive implements Contents.IDrive {
     const type = options?.type || 'directory';
     var name = type === 'directory' ? 'Untitled Folder' : 'untitled'
     const ext = options?.ext || 'txt';
-
-    let data: Contents.IModel;
+    const last_modified = new Date()
+    var path
     if (type === 'directory') {
       /*
       let i = 1;
@@ -151,18 +154,41 @@ export class BoxDrive implements Contents.IDrive {
       let i = 1;
       while (true) {
         const newname = `${name}.${ext}`
-        const path = PathExt.join(parentPath, newname)
-        data = await this.save(path, {
-          name: newname,
-          path,
-          content: "",
-          format: "text",
-          type: "file"
-        })
+
+        path = PathExt.join(parentPath, newname)
+        let dirname = PathExt.dirname(path)
+        var formData = new FormData();
+        formData.append('parent_id', this.get_file_id(dirname));
+        const r = await this.upload_file_content(
+          client,
+          newname,
+          "",
+          formData,
+          last_modified,
+        )
         name = `${name}${i++}`;
-        if (true) {
-          break
+        if (!r.ok && r.status == 409) {
+          continue
         }
+        break
+      }
+    }
+
+    let data: Contents.IModel;
+    try {
+      var id = this.get_file_id(path);
+      data = await this.get_file_content(client, id, path, options, last_modified)
+    } catch (e) {
+      data = {
+        name,
+        path,
+        created: last_modified.toISOString(),
+        last_modified: last_modified.toISOString(),
+        format: "text",
+        mimetype: '',
+        content: null,
+        writable: true,
+        type: 'file'
       }
     }
 
@@ -191,11 +217,9 @@ export class BoxDrive implements Contents.IDrive {
     var format = options?.format;
     const content = options?.content;
     var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken});
+    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
     let basename = PathExt.basename(path)
     let dirname = PathExt.dirname(path)
-
-    var formData = new FormData();
 
     var contentBlob
     if (format == "base64") {
@@ -209,6 +233,8 @@ export class BoxDrive implements Contents.IDrive {
       contentBlob = content
     }
 
+    var formData = new FormData();
+
     var name
     if (options && 'name' in options) {
       name = basename
@@ -217,14 +243,16 @@ export class BoxDrive implements Contents.IDrive {
       name = this.get_file_name(path)
       formData.append('id', this.get_file_id(path));
     }
-
     const last_modified = new Date()
-    const file = new File([contentBlob], name, {
-      type: "",
-      lastModified: last_modified.getTime(),
-    })
-    formData.append(name, file);
-    await client.files.upload({body: formData})
+
+    const r = await this.upload_file_content(
+      client,
+      name,
+      contentBlob,
+      formData,
+      last_modified
+    )
+    console.log(r)
 
     this._fileChanged.emit({
       type: 'save',
@@ -232,11 +260,12 @@ export class BoxDrive implements Contents.IDrive {
       newValue: contentBlob
     });
 
-    var clientn = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    let data: Contents.IModel;
     try {
       var id = this.get_file_id(path);
+      data = await this.get_file_content(client, id, path, options, last_modified)
     } catch (e) {
-      return {
+      data = {
         name,
         path,
         created: last_modified.toISOString(),
@@ -248,7 +277,7 @@ export class BoxDrive implements Contents.IDrive {
         type: 'file'
       }
     }
-    return this.get_file_content(clientn, id, path, options, last_modified)
+    return data
   }
 
   async copy(path: string, toLocalDir: string): Promise<Contents.IModel> {
@@ -303,6 +332,7 @@ export class BoxDrive implements Contents.IDrive {
     var r = await fetch(opt.url, {
       method: opt.method,
       headers: opt.headers,
+      mode: opt.mode,
       cache: "no-store"
     })
     const res_json = await r.json();
@@ -316,6 +346,7 @@ export class BoxDrive implements Contents.IDrive {
     var r_content = await fetch(url_content, {
       method: opt.method,
       headers: opt.headers,
+      mode: opt.mode,
       cache: "no-store"
     })
   
@@ -382,6 +413,33 @@ export class BoxDrive implements Contents.IDrive {
       writable: true,
       type
     };
+  }
+
+  private async upload_file_content(
+    client: any,
+    name: string,
+    contentBlob: any,
+    formData: FormData,
+    last_modified: Date
+  ) {
+    const file = new File([contentBlob], name, {
+      type: "",
+      lastModified: last_modified.getTime(),
+    })
+    formData.append(name, file);
+
+    const optupload = await client.files.upload({body: formData})
+    if (optupload.headers && 'Content-Type' in optupload.headers) {
+      delete optupload.headers['Content-Type'];
+    }
+    var r = await fetch(optupload.url, {
+      method: optupload.method,
+      headers: optupload.headers,
+      body: optupload.body,
+      mode: optupload.mode,
+      cache: "no-store"
+    })
+    return r
   }
 
   private build_path(path: string, name: string, id: string): string {
