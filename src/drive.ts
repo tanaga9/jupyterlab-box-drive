@@ -106,6 +106,11 @@ export class BoxDrive implements Contents.IDrive {
     const content: Contents.IModel[] = [];
     for (const entry of res_json.item_collection.entries) {
       if (entry.type == "file") {
+        const entry_ext = PathExt.extname(entry.name)
+        var entry_type: Contents.ContentType = 'file'
+        if (entry_ext == ".ipynb") {
+          entry_type = 'notebook'
+        }
         content.push({
           name: entry.name,
           path: build_path(path, entry.name, entry.id),
@@ -115,7 +120,7 @@ export class BoxDrive implements Contents.IDrive {
           mimetype: '',
           content: null,
           writable: true,
-          type: 'file'
+          type: entry_type
         });
       } else {
         content.push({
