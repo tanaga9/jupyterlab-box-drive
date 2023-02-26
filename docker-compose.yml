@@ -9,3 +9,4 @@ services:
       - .:/work
     # docker-compose exec dev jlpm watch
     # docker-compose exec dev jupyter lite build --minimize=False --force --output-dir build
+    # docker-compose exec dev python -m build -o /dist

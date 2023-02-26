@@ -17,7 +17,7 @@ RUN cd /preinstall && pip install -ve .
 WORKDIR /work
 EXPOSE 8888
 
-RUN pip install jupyterlab-favorites ipydrawio jupyterlite
+RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 
 COPY . /work
 

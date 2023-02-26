@@ -52,6 +52,19 @@ export class BoxDrive implements Contents.IDrive {
     path: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
+    if (!(options && 'content' in options && options.content) && this._boxDirFileMap.has(path)) {
+      return {
+        name: PathExt.basename(path),
+        path: path,
+        last_modified: '',
+        created: '',
+        format: null,
+        mimetype: '',
+        content: null,
+        writable: true,
+        type: this._boxDirFileMap.get(path) ? 'directory' : 'file'
+      };
+    }
     var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
     var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
     var id = this.get_file_id(path);
@@ -84,9 +97,10 @@ export class BoxDrive implements Contents.IDrive {
         if (entry_ext == ".ipynb") {
           entry_type = 'notebook'
         }
+        const subpath = this.build_path(path, entry.name, entry.id)
         content.push({
           name: entry.name,
-          path: this.build_path(path, entry.name, entry.id),
+          path: subpath,
           created: '',
           last_modified: '',
           format: null,
@@ -95,10 +109,12 @@ export class BoxDrive implements Contents.IDrive {
           writable: true,
           type: entry_type
         });
+        this._boxDirFileMap.set(subpath, false)
       } else {
+        const subpath = this.build_path(path, entry.name, entry.id)
         content.push({
           name: entry.name,
-          path: this.build_path(path, entry.name, entry.id),
+          path: subpath,
           created: '',
           last_modified: '',
           format: null,
@@ -107,6 +123,7 @@ export class BoxDrive implements Contents.IDrive {
           writable: true,
           type: 'directory'
         });
+        this._boxDirFileMap.set(subpath, true)
       }
     }
     return {
@@ -493,5 +510,6 @@ export class BoxDrive implements Contents.IDrive {
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
   private _boxIDMap = new Map([["", "0"], ["/", "0"]])
+  private _boxDirFileMap = new Map([["", true], ["/", true]])
 
 }
