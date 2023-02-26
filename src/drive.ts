@@ -23,34 +23,6 @@ function base64DecodeAsBlob(text: string, type = 'text/plain;charset=UTF-8') {
   return fetch(`data:${type};base64,` + text).then(response => response.blob());
 }
 
-function build_path(path: string, name: string, id: string): string {
-  return PathExt.join(path, id + ": " + name)
-}
-
-function get_file_id(path: string): string {
-  let basename = PathExt.basename(path)
-  var id;
-  var m = basename.match(/([0-9]+): .*/)
-  if (path == '' || m == null) {
-    id = "0"
-  } else {
-    id = m[1]
-  }
-  return id
-}
-
-function get_file_name(path: string): string {
-  let basename = PathExt.basename(path)
-  var name;
-  var m = basename.match(/[0-9]+: (.*)/)
-  if (path == '' || m == null) {
-    name = ""
-  } else {
-    name = m[1]
-  }
-  return name
-}
-
 export class BoxDrive implements Contents.IDrive {
   get isDisposed(): boolean {
     return this._isDisposed;
@@ -82,7 +54,7 @@ export class BoxDrive implements Contents.IDrive {
   ): Promise<Contents.IModel> {
     var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
     var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
-    var id = get_file_id(path);
+    var id = this.get_file_id(path);
 
     if (options && 'type' in options &&
     (options.type == 'file' || options.type == 'notebook')) {
@@ -113,7 +85,7 @@ export class BoxDrive implements Contents.IDrive {
         }
         content.push({
           name: entry.name,
-          path: build_path(path, entry.name, entry.id),
+          path: this.build_path(path, entry.name, entry.id),
           created: '',
           last_modified: '',
           format: null,
@@ -125,7 +97,7 @@ export class BoxDrive implements Contents.IDrive {
       } else {
         content.push({
           name: entry.name,
-          path: build_path(path, entry.name, entry.id),
+          path: this.build_path(path, entry.name, entry.id),
           created: '',
           last_modified: '',
           format: null,
@@ -174,7 +146,7 @@ export class BoxDrive implements Contents.IDrive {
     path: string,
     options?: Partial<Contents.IModel>
   ): Promise<Contents.IModel> {
-    const format = options?.format;
+    var format = options?.format;
     const content = options?.content;
     var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
     var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken});
@@ -188,17 +160,20 @@ export class BoxDrive implements Contents.IDrive {
       contentBlob = await base64DecodeAsBlob(content);
     } else if (format == "json") {
       contentBlob = JSON.stringify(content, null, 2);
+    } else if (format == "text") {
+      contentBlob = content
     } else {
+      format = "text"
       contentBlob = content
     }
 
     var name
     if (options && 'name' in options) {
       name = basename
-      formData.append('parent_id', get_file_id(dirname));
+      formData.append('parent_id', this.get_file_id(dirname));
       } else {
-      name = get_file_name(path)
-      formData.append('id', get_file_id(path));
+      name = this.get_file_name(path)
+      formData.append('id', this.get_file_id(path));
     }
 
     const last_modified = new Date()
@@ -216,7 +191,21 @@ export class BoxDrive implements Contents.IDrive {
     });
 
     var clientn = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
-    var id = get_file_id(path);
+    try {
+      var id = this.get_file_id(path);
+    } catch (e) {
+      return {
+        name,
+        path,
+        created: last_modified.toISOString(),
+        last_modified: last_modified.toISOString(),
+        format: format,
+        mimetype: '',
+        content: null,
+        writable: true,
+        type: 'file'
+      }
+    }
     return this.get_file_content(clientn, id, path, options, last_modified)
   }
 
@@ -353,6 +342,27 @@ export class BoxDrive implements Contents.IDrive {
     };
   }
 
+  private build_path(path: string, name: string, id: string): string {
+    const newpath = PathExt.join(path, name)
+    this._boxIDMap.set(newpath, id)
+    return newpath
+  }
+  
+  private get_file_id(path: string): string {
+    const id = this._boxIDMap.get(path)
+    if (id == undefined) {
+      throw new Error('ID not found for path');
+    }
+    return id
+  }
+  
+  private get_file_name(path: string): string {
+    let basename = PathExt.basename(path)
+    return basename
+  }
+  
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
+  private _boxIDMap = new Map([["", "0"], ["/", "0"]])
+
 }
