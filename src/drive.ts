@@ -8,8 +8,6 @@ declare var BoxSdk: any;
 
 export const DRIVE_NAME = 'Box';
 
-export const LOCAL_STORAGE_TOKEN_KEY = 'AccessToken';
-
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -34,6 +32,10 @@ export class BoxDrive implements Contents.IDrive {
     }
     this._isDisposed = true;
     Signal.clearData(this);
+  }
+
+  set accessToken(accessToken: string) {
+    this._accessToken = accessToken;
   }
 
   get name(): string {
@@ -65,8 +67,8 @@ export class BoxDrive implements Contents.IDrive {
         type: this._boxDirFileMap.get(path) ? 'directory' : 'file'
       };
     }
-    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
     var id = this.get_file_id(path);
 
     if (options && 'type' in options &&
@@ -147,8 +149,8 @@ export class BoxDrive implements Contents.IDrive {
   async newUntitled(
     options?: Contents.ICreateOptions
   ): Promise<Contents.IModel> {
-    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
     let parentPath = ''
     if (options && options.path) {
       parentPath = options.path
@@ -223,8 +225,8 @@ export class BoxDrive implements Contents.IDrive {
   }
 
   async rename(path: string, newPath: string): Promise<Contents.IModel> {
-    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
 
     const id = this.get_file_id(path)
     const newname = this.get_file_name(newPath)
@@ -260,8 +262,8 @@ export class BoxDrive implements Contents.IDrive {
   ): Promise<Contents.IModel> {
     var format = options?.format;
     const content = options?.content;
-    var accessToken = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY);
-    var client = new (new BoxSdk()).BasicBoxClient({accessToken: accessToken, noRequestMode: true});
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
     let basename = PathExt.basename(path)
     let dirname = PathExt.dirname(path)
 
@@ -416,8 +418,16 @@ export class BoxDrive implements Contents.IDrive {
       mimetype = ""
       format = 'json';
     } else if (
-      ['md', 'yml', 'yaml', 'json'].includes(res_json.extension) ||
-      ["application/x-javascript", "image/svg+xml"].includes(mimetype)
+      [
+        'md',
+        'yml', 'yaml',
+        'json',
+        'py',
+      ].includes(res_json.extension) ||
+      [
+        "application/x-javascript",
+        "image/svg+xml",
+      ].includes(mimetype)
     ) {
       mimetype = "text/plain"
       format = 'text';
@@ -511,5 +521,5 @@ export class BoxDrive implements Contents.IDrive {
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
   private _boxIDMap = new Map([["", "0"], ["/", "0"]])
   private _boxDirFileMap = new Map([["", true], ["/", true]])
-
+  private _accessToken: string = "";
 }

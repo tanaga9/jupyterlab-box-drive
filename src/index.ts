@@ -54,13 +54,60 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const getTokenButton = new ToolbarButton({
       icon: launchIcon,
       onClick: async () => {
-        window.open('../auth.html', '_blank');
+        cwindow = window.open('../auth.html', 'BoxAuth', "width=600,height=900");
       },
       tooltip: trans.__('Log in - Box')
     });
     widget.toolbar.insertItem(0, 'get-token', getTokenButton);
 
     app.shell.add(widget, 'left');
+
+    var cwindow: any = null
+    var TokenEndpoint: string
+    var ClientID: string
+    var ClientSecret: string
+    var RefreshToken: string = ""
+    var ExpiresAt: Number = 0
+
+    const getAccessToken = async function(){
+      var form_data = new FormData();
+      form_data.append('client_id', ClientID);
+      form_data.append('client_secret', ClientSecret);
+      form_data.append('grant_type', 'refresh_token');
+      form_data.append('refresh_token', RefreshToken);
+      var res = await fetch(TokenEndpoint , {
+        method: "POST",
+        body: form_data
+      })
+      const res_json = await res.json();
+      if (!res.ok) {
+        throw new Error(res_json);
+      }
+      RefreshToken = res_json.refresh_token
+      ExpiresAt = (new Date()).getTime() + res_json.expires_in * 1000
+      drive.accessToken = res_json.access_token
+    }
+    const timer = async function(){
+      if (cwindow) {
+        try {
+          if (cwindow.RefreshToken) {
+            TokenEndpoint = cwindow.TokenEndpoint
+            ClientID = cwindow.ClientID
+            ClientSecret = cwindow.ClientSecret
+            RefreshToken = cwindow.RefreshToken
+            await getAccessToken()
+            cwindow.close()
+            cwindow = null
+          }
+        } catch (e) {
+        }
+      } else if (RefreshToken && ExpiresAt > 0 &&
+        (new Date()).getTime() + 10 * 60 * 1000 > ExpiresAt) {
+        await getAccessToken()
+      }
+      setTimeout(timer, 1000);
+    }
+    timer();
   }
 };
 

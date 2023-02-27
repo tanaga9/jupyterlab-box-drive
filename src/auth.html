@@ -7,8 +7,12 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
             integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
         <script type="text/javascript">
+            TokenEndpoint = "https://api.box.com/oauth2/token"
+            ClientID = ""
+            ClientSecret = ""
+            RefreshToken = ""
+
             url_authorize  = "https://account.box.com/api/oauth2/authorize"
-            token_endpoint = "https://api.box.com/oauth2/token"
             scopes = [
                 "base_explorer",
                 "base_picker",
@@ -30,8 +34,8 @@
             async function main(){
                 ClientID = document.getElementById("ClientID").value
                 ClientSecret = document.getElementById("ClientSecret").value
-                localStorage.setItem('ClientID', ClientID);
-                localStorage.setItem('ClientSecret', ClientSecret);
+                sessionStorage.setItem('BoxAppClientID', ClientID);
+                sessionStorage.setItem('BoxAppClientSecret', ClientSecret);
 
                 const auth_url = new URL(url_authorize);
 
@@ -42,10 +46,10 @@
                 window.location.href = auth_url
             }
             async function init() {
-                ClientID = localStorage.getItem('ClientID')
-                ClientSecret = localStorage.getItem('ClientSecret')
-                document.getElementById("ClientID").value = ClientID
-                document.getElementById("ClientSecret").value = ClientSecret
+                ClientID = sessionStorage.getItem('BoxAppClientID')
+                ClientSecret = sessionStorage.getItem('BoxAppClientSecret')
+                sessionStorage.removeItem('BoxAppClientID')
+                sessionStorage.removeItem('BoxAppClientSecret')
 
                 params = new URLSearchParams(location.search);
                 code = params.get('code');
@@ -65,7 +69,7 @@
                     for ( var key in item ) {
                         form_data.append(key, item[key]);
                     }
-                    res = await fetch(token_endpoint , {
+                    res = await fetch(TokenEndpoint , {
                         method: "POST",
                         body: form_data
                     })
@@ -79,50 +83,6 @@
                     e = error + ": " + error_description
                     document.getElementById("status").textContent = e;
                     throw new Error(e);
-                } else {
-                    RefreshToken = sessionStorage.getItem('RefreshToken')
-                }
-                document.getElementById("spinner").style.display = 'none';
-                document.getElementById("status").textContent = 'none';
-            
-                if (RefreshToken) {
-                    ExpiresAt = 0
-                    async function digitalClock(){
-                        if ((new Date()).getTime() + 10 * 60 * 1000 > ExpiresAt) {
-                            item = {
-                                'client_id': ClientID,
-                                'client_secret': ClientSecret,
-                                'grant_type': 'refresh_token',
-                                'refresh_token': RefreshToken,
-                            }
-                            var form_data = new FormData();
-                            for ( var key in item ) {
-                                form_data.append(key, item[key]);
-                            }
-                            res = await fetch(token_endpoint , {
-                                method: "POST",
-                                body: form_data
-                            })
-                            const res_json = await res.json();
-                            if (!res.ok) {
-                                throw new Error(res_json);
-                            }
-
-                            AccessToken = res_json.access_token
-                            RefreshToken = res_json.refresh_token
-                            ExpiresAt = (new Date()).getTime() + res_json.expires_in * 1000
-
-                            localStorage.setItem('AccessToken', AccessToken);
-                            sessionStorage.setItem('RefreshToken', RefreshToken);
-                            sessionStorage.setItem('ExpiresAt', ExpiresAt);
-
-                            document.getElementById("badge-n").style.display = 'none';
-                            document.getElementById("badge-s").style.display = 'block';
-                            document.getElementById("status").textContent = (new Date(ExpiresAt)).toString()
-                        }
-                        setTimeout(digitalClock, 10000);
-                    }
-                    await digitalClock();
                 }
             }
             window.onload = init;
@@ -145,9 +105,6 @@
 
             </div>
             <div class="row">
-                <div id="spinner" class="spinner-border m-5" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
                 <span id="badge-n" class="badge text-bg-secondary">No</span>
                 <span id="badge-s" class="badge text-bg-success" style="display: none">Success</span>
                 <span id="status">
