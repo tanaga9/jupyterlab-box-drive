@@ -88,24 +88,23 @@ const plugin: JupyterFrontEndPlugin<void> = {
       drive.accessToken = res_json.access_token
     }
     const timer = async function(){
-      if (cwindow) {
-        try {
-          if (cwindow.RefreshToken) {
-            TokenEndpoint = cwindow.TokenEndpoint
-            ClientID = cwindow.ClientID
-            ClientSecret = cwindow.ClientSecret
-            RefreshToken = cwindow.RefreshToken
-            await getAccessToken()
-            cwindow.close()
-            cwindow = null
-          }
-        } catch (e) {
+      try {
+        if (cwindow && cwindow.RefreshToken) {
+          TokenEndpoint = cwindow.TokenEndpoint
+          ClientID = cwindow.ClientID
+          ClientSecret = cwindow.ClientSecret
+          RefreshToken = cwindow.RefreshToken
+          await getAccessToken()
+          cwindow.close()
+          cwindow = null
+        } else if (RefreshToken && ExpiresAt > 0 &&
+          (new Date()).getTime() + 10 * 60 * 1000 > ExpiresAt) {
+          await getAccessToken()
         }
-      } else if (RefreshToken && ExpiresAt > 0 &&
-        (new Date()).getTime() + 10 * 60 * 1000 > ExpiresAt) {
-        await getAccessToken()
+      } catch (e) {
+        console.error(e)
       }
-      setTimeout(timer, 1000);
+      setTimeout(timer, 3000);
     }
     timer();
   }
