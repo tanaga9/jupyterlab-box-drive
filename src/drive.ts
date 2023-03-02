@@ -69,7 +69,7 @@ export class BoxDrive implements Contents.IDrive {
     }
     var client = new (new BoxSdk()).BasicBoxClient({
       accessToken: this._accessToken, noRequestMode: true});
-    var id = this.get_file_id(path);
+    var id = await this.get_file_id(path);
 
     if (options && 'type' in options &&
     (options.type == 'file' || options.type == 'notebook')) {
@@ -179,7 +179,7 @@ export class BoxDrive implements Contents.IDrive {
         path = PathExt.join(parentPath, newname)
         let dirname = PathExt.dirname(path)
         var formData = new FormData();
-        formData.append('parent_id', this.get_file_id(dirname));
+        formData.append('parent_id', await this.get_file_id(dirname));
         const r = await this.upload_file_content(
           client,
           newname,
@@ -228,7 +228,7 @@ export class BoxDrive implements Contents.IDrive {
     var client = new (new BoxSdk()).BasicBoxClient({
       accessToken: this._accessToken, noRequestMode: true});
 
-    const id = this.get_file_id(path)
+    const id = await this.get_file_id(path)
     const newname = this.get_file_name(newPath)
     let dirname = PathExt.dirname(path)
 
@@ -284,10 +284,10 @@ export class BoxDrive implements Contents.IDrive {
     var name
     if (options && 'name' in options) {
       name = basename
-      formData.append('parent_id', this.get_file_id(dirname));
+      formData.append('parent_id', await this.get_file_id(dirname));
     } else {
       name = this.get_file_name(path)
-      formData.append('id', this.get_file_id(path));
+      formData.append('id', await this.get_file_id(path));
     }
     const last_modified = new Date()
 
@@ -310,7 +310,7 @@ export class BoxDrive implements Contents.IDrive {
 
     let data: Contents.IModel;
     try {
-      var id = this.get_file_id(path);
+      var id = await this.get_file_id(path);
       data = await this.get_file_content(client, id, path, options, last_modified)
     } catch (e) {
       data = {
@@ -504,12 +504,24 @@ export class BoxDrive implements Contents.IDrive {
     return newpath
   }
   
-  private get_file_id(path: string): string {
-    const id = this._boxIDMap.get(path)
-    if (id == undefined) {
-      throw new Error('ID not found for path');
+  private async get_file_id(path: string): Promise<string> {
+    let id = this._boxIDMap.get(path)
+    if (id) {
+      return id
     }
-    return id
+    let dirname = PathExt.dirname(path)
+    if (dirname) {
+      await this.get_file_id(dirname)
+      await this.get(dirname, {content: true})
+    } else {
+      await this.get("", {content: true})
+      return "0"
+    }
+    id = this._boxIDMap.get(path)
+    if (id) {
+      return id
+    }
+    throw new Error('ID not found for path');
   }
   
   private get_file_name(path: string): string {
