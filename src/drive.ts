@@ -142,8 +142,22 @@ export class BoxDrive implements Contents.IDrive {
     };
   }
 
-  getDownloadUrl(path: string): Promise<string> {
-    throw new Error('Method not implemented.');
+  async getDownloadUrl(path: string): Promise<string> {
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
+    const id = await this.get_file_id(path)
+    var opt = client.files.getDownloadUrl({id: id})
+    var r = await fetch(opt.url, {
+      method: opt.method,
+      headers: opt.headers,
+      mode: opt.mode,
+      cache: "no-store"
+    })
+    const res_json = await r.json();
+    if (!r.ok) {
+      throw new Error();
+    }
+    return res_json.download_url
   }
 
   async newUntitled(
