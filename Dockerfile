@@ -21,10 +21,11 @@ RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 
 COPY . /work
 
-CMD pip install -ve . && \
+CMD cp /box-javascript-sdk/lib/BoxSdk.min.js /work/jupyterlab_box_drive/labextension/static/. && \
+    pip install -ve . && \
     jupyter labextension develop --overwrite . && \
+    python -m build -o /dist && \
     jupyter lite build --minimize=False --force --output-dir build  && \
-    cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/auth.html /work/build/. && \
     jupyter lite serve --port=8888 --ip=0.0.0.0 --output-dir build
     # jupyter lab --no-browser --port=8888 --ip=0.0.0.0 --allow-root --NotebookApp.token=''
 
