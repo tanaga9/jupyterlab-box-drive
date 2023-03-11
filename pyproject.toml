@@ -32,6 +32,10 @@ source = "nodejs"
 [tool.hatch.metadata.hooks.nodejs]
 fields = ["description", "authors", "urls"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/auth.html" = "jupyterlab_box_drive/labextension/static/auth.html"
+"src/BoxSdk.min.js" = "jupyterlab_box_drive/labextension/static/BoxSdk.min.js"
+
 [tool.hatch.build.targets.sdist]
 artifacts = ["jupyterlab_box_drive/labextension"]
 exclude = [".github", "binder"]
