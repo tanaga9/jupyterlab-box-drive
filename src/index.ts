@@ -39,7 +39,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     const trans = translator.load('jupyterlab-box-drive');
 
-    loadJS("/extensions/jupyterlab-box-drive/static/BoxSdk.min.js");
+    loadJS("../extensions/jupyterlab-box-drive/static/BoxSdk.min.js");
     const drive = new BoxDrive();
 
     serviceManager.contents.addDrive(drive);
@@ -55,7 +55,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       icon: launchIcon,
       onClick: async () => {
         cwindow = window.open(
-          '/extensions/jupyterlab-box-drive/static/auth.html',
+          '../extensions/jupyterlab-box-drive/static/auth.html',
           'BoxAuth', "width=600,height=600");
       },
       tooltip: trans.__('Log in - Box')
