@@ -235,7 +235,23 @@ export class BoxDrive implements Contents.IDrive {
   }
 
   async delete(path: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
+
+    const id = await this.get_file_id(path)
+
+    const opt = await client.files.delete({id})
+    var r = await fetch(opt.url, {
+      method: opt.method,
+      headers: opt.headers,
+      mode: opt.mode,
+      cache: "no-store"
+    })
+    if (!r.ok) {
+      throw new Error();
+    }
+    this._boxIDMap.delete(path)
+    this._boxDirFileMap.delete(path)
   }
 
   async rename(path: string, newPath: string): Promise<Contents.IModel> {
