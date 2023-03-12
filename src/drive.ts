@@ -185,11 +185,15 @@ export class BoxDrive implements Contents.IDrive {
       */
       throw new Error('Method not implemented.');
     } else {
-      var name = namebase
-      let i = 1;
-      while (true) {
-        const newname = `${name}.${ext}`
-
+      for (let i = 0; true; i++) {
+        var name
+        if (i == 0) {
+          name = `${namebase}`;
+        } else {
+          name = `${namebase} ${i}`;
+        }
+        const newname = `${name}${ext}`
+  
         path = PathExt.join(parentPath, newname)
         let dirname = PathExt.dirname(path)
         var formData = new FormData();
@@ -201,8 +205,6 @@ export class BoxDrive implements Contents.IDrive {
           formData,
           last_modified,
         )
-
-        name = `${namebase} ${i++}`;
         if (!r.ok && r.status == 409) {
           continue
         }
@@ -359,8 +361,53 @@ export class BoxDrive implements Contents.IDrive {
   }
 
   async copy(path: string, toLocalDir: string): Promise<Contents.IModel> {
-    throw new Error('Method not implemented.');
-    // return this.get(path);
+    var client = new (new BoxSdk()).BasicBoxClient({
+      accessToken: this._accessToken, noRequestMode: true});
+    
+    let basename = PathExt.basename(path)
+    let dirname = PathExt.dirname(path)
+
+    const id = await this.get_file_id(path)
+    const parent_id = await this.get_file_id(toLocalDir)
+
+    const ext = PathExt.extname(basename)
+    const namebase = basename.slice(0, basename.length - ext.length)
+
+    for (let i = (dirname === toLocalDir ? 1 : 0); true; i++) {
+      var name
+      if (i == 0) {
+        name = `${namebase}`;
+      } else {
+        name = `${namebase} ${i}`;
+      }
+      const newname = `${name}${ext}`
+
+      const opt = await client.files.copy({
+        id, name: newname, body: {parent: {id: parent_id}}})
+      var r = await fetch(opt.url, {
+        method: opt.method,
+        headers: opt.headers,
+        mode: opt.mode,
+        body: opt.body,
+        cache: "no-store"
+      })
+      if (!r.ok && r.status == 409) {
+        continue
+      }
+      const res_json = await r.json();
+      const newpath = this.build_path(toLocalDir, newname, res_json.id)
+      return {
+        name: res_json.name,
+        path: newpath,
+        last_modified: new Date(res_json.content_modified_at).toISOString(),
+        created: new Date(res_json.content_created_at).toISOString(),
+        format: null,
+        mimetype: '',
+        content: '',
+        writable: true,
+        type: 'file'
+      }
+    }
   }
 
   async createCheckpoint(path: string): Promise<Contents.ICheckpointModel> {
