@@ -11,6 +11,7 @@ RUN git clone https://github.com/box-community/box-javascript-sdk.git /box-javas
     npm install && \
     npm run build
 
+RUN apt update && apt-get install -y gcc python3-dev
 COPY pyproject.toml package.json LICENSE README.md /preinstall/
 RUN cd /preinstall && pip install -ve .
 
