@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-box-drive",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JupyterLab extension.",
   "keywords": [
     "jupyter",
@@ -34,7 +34,7 @@
     "build:labextension:dev": "jupyter labextension build --development True .",
     "build:lib": "tsc --sourceMap",
     "build:lib:prod": "tsc",
-    "postbuild": "cp src/auth.html /box-javascript-sdk/lib/BoxSdk.min.js jupyterlab_box_drive/labextension/static/.",
+    "postbuild": "curl https://raw.githubusercontent.com/box-community/box-javascript-sdk/main/build/BoxSdk.min.js --output src/BoxSdk.min.js && cp src/auth.html src/BoxSdk.min.js jupyterlab_box_drive/labextension/static/.",
     "clean": "jlpm clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:lintcache": "rimraf .eslintcache .stylelintcache",
