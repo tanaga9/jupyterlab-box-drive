@@ -5,6 +5,8 @@ A JupyterLab extension.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
+![How to use](how_to_use.drawio.png)
+
 ## Motivation
 
 The main motivation for this extension is to give access to Box.com storage in [JupyterLite](https://github.com/jupyterlite/jupyterlite)

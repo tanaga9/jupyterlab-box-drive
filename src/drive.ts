@@ -54,7 +54,7 @@ export class BoxDrive implements Contents.IDrive {
     path: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
-    if (!(options && 'content' in options && options.content) && this._boxPathMap.has(path)) {
+    if (!(options && 'content' in options && options.content) && this._boxAbsPathMap.has(path)) {
       return {
         name: PathExt.basename(path),
         path: path,
@@ -64,7 +64,7 @@ export class BoxDrive implements Contents.IDrive {
         mimetype: '',
         content: null,
         writable: true,
-        type: this._boxPathMap.get(path)!.isdir ? 'directory' : 'file'
+        type: this._boxAbsPathMap.get(path)!.isdir ? 'directory' : 'file'
       };
     }
     var client = new (new BoxSdk()).BasicBoxClient({
@@ -101,7 +101,7 @@ export class BoxDrive implements Contents.IDrive {
         }
         content.push({
           name: entry.name,
-          path: this.build_and_set_to_map(path, entry.name, entry.id, false),
+          path: this.get_abspath_and_set_to_map(path, entry.name, entry.id, false),
           created: '',
           last_modified: '',
           format: null,
@@ -113,7 +113,7 @@ export class BoxDrive implements Contents.IDrive {
       } else {
         content.push({
           name: entry.name,
-          path: this.build_and_set_to_map(path, entry.name, entry.id, true),
+          path: this.get_abspath_and_set_to_map(path, entry.name, entry.id, true),
           created: '',
           last_modified: '',
           format: null,
@@ -214,7 +214,7 @@ export class BoxDrive implements Contents.IDrive {
 
     let data: Contents.IModel = {
       name: entry.name,
-      path: this.build_and_set_to_map(parentPath, entry.name, entry.id, isdir),
+      path: this.get_abspath_and_set_to_map(parentPath, entry.name, entry.id, isdir),
       created: new Date(entry.content_created_at).toISOString(),
       last_modified: new Date(entry.content_created_at).toISOString(),
       format: "text",
@@ -270,7 +270,7 @@ export class BoxDrive implements Contents.IDrive {
       cache: "no-store"
     })
     const res_json = await r.json();
-    this.build_and_set_to_map(dirname, newname, id, this._boxPathMap.get(path)!.isdir)
+    this.get_abspath_and_set_to_map(dirname, newname, id, this._boxAbsPathMap.get(path)!.isdir)
 
     return {
       name: newname,
@@ -392,7 +392,7 @@ export class BoxDrive implements Contents.IDrive {
         continue
       }
       const res_json = await r.json();
-      const newpath = this.build_and_set_to_map(toLocalDir, newname, res_json.id, false)
+      const newpath = this.get_abspath_and_set_to_map(toLocalDir, newname, res_json.id, false)
       return {
         name: res_json.name,
         path: newpath,
@@ -573,7 +573,7 @@ export class BoxDrive implements Contents.IDrive {
   }
   
   private async get_file_id(path: string): Promise<string> {
-    let id = this._boxPathMap.get(path)?.id
+    let id = this._boxAbsPathMap.get(path)?.id
     if (id) {
       return id
     }
@@ -585,21 +585,21 @@ export class BoxDrive implements Contents.IDrive {
       await this.get("", {content: true})
       return "0"
     }
-    id = this._boxPathMap.get(path)?.id
+    id = this._boxAbsPathMap.get(path)?.id
     if (id) {
       return id
     }
     throw new Error('ID not found for path');
   }
 
-  private build_and_set_to_map(dirpath: string, name: string, id: string, isdir: boolean): string {
+  private get_abspath_and_set_to_map(dirpath: string, name: string, id: string, isdir: boolean): string {
     const path = PathExt.join(dirpath, name)
-    this._boxPathMap.set(path, {id: id, isdir: isdir})
+    this._boxAbsPathMap.set(path, {id: id, isdir: isdir})
     return path
   }
 
   private delete_from_map(path: string) {
-    this._boxPathMap.delete(path)
+    this._boxAbsPathMap.delete(path)
   }
   
   private get_file_name(path: string): string {
@@ -609,7 +609,7 @@ export class BoxDrive implements Contents.IDrive {
   
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
-  private _boxPathMap = new Map([
+  private _boxAbsPathMap = new Map([
     ["", {id: "0", isdir: true}],
     ["/", {id: "0", isdir: true}]
   ])
