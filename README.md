@@ -7,6 +7,15 @@ Browse Box.com storage using [box-javascript-sdk](https://github.com/box-communi
 
 ![How to use](how_to_use.drawio.png)
 
+- [Box Dev Console](https://app.box.com/developers/console)
+- [Create New App](https://app.box.com/developers/console/newapp)
+- [Create a Custom App (OAuth 2.0)](https://developer.box.com/guides/authentication/oauth2/)
+- Configuration
+    - get OAuth 2.0 Credentials
+    - set OAuth 2.0 Redirect URI
+    - set Application Scopes
+    - set CORS Domains
+
 ## Motivation
 
 The main motivation for this extension is to give access to Box.com storage in [JupyterLite](https://github.com/jupyterlite/jupyterlite)
