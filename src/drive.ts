@@ -54,7 +54,7 @@ export class BoxDrive implements Contents.IDrive {
     path: string,
     options?: Contents.IFetchOptions
   ): Promise<Contents.IModel> {
-    if (!(options && 'content' in options && options.content) && this._boxDirFileMap.has(path)) {
+    if (!(options && 'content' in options && options.content) && this._boxPathMap.has(path)) {
       return {
         name: PathExt.basename(path),
         path: path,
@@ -64,7 +64,7 @@ export class BoxDrive implements Contents.IDrive {
         mimetype: '',
         content: null,
         writable: true,
-        type: this._boxDirFileMap.get(path) ? 'directory' : 'file'
+        type: this._boxPathMap.get(path)!.isdir ? 'directory' : 'file'
       };
     }
     var client = new (new BoxSdk()).BasicBoxClient({
@@ -99,10 +99,9 @@ export class BoxDrive implements Contents.IDrive {
         if (entry_ext == ".ipynb") {
           entry_type = 'notebook'
         }
-        const subpath = this.build_path(path, entry.name, entry.id)
         content.push({
           name: entry.name,
-          path: subpath,
+          path: this.build_and_set_to_map(path, entry.name, entry.id, false),
           created: '',
           last_modified: '',
           format: null,
@@ -111,12 +110,10 @@ export class BoxDrive implements Contents.IDrive {
           writable: true,
           type: entry_type
         });
-        this._boxDirFileMap.set(subpath, false)
       } else {
-        const subpath = this.build_path(path, entry.name, entry.id)
         content.push({
           name: entry.name,
-          path: subpath,
+          path: this.build_and_set_to_map(path, entry.name, entry.id, true),
           created: '',
           last_modified: '',
           format: null,
@@ -125,7 +122,6 @@ export class BoxDrive implements Contents.IDrive {
           writable: true,
           type: 'directory'
         });
-        this._boxDirFileMap.set(subpath, true)
       }
     }
     return {
@@ -176,7 +172,8 @@ export class BoxDrive implements Contents.IDrive {
     const last_modified = new Date()
     var path
     var entry
-    if (type === 'directory') {
+    const isdir = type === 'directory'
+    if (isdir) {
       /*
       let i = 1;
       while (true) {
@@ -217,7 +214,7 @@ export class BoxDrive implements Contents.IDrive {
 
     let data: Contents.IModel = {
       name: entry.name,
-      path: this.build_path(parentPath, entry.name, entry.id),
+      path: this.build_and_set_to_map(parentPath, entry.name, entry.id, isdir),
       created: new Date(entry.content_created_at).toISOString(),
       last_modified: new Date(entry.content_created_at).toISOString(),
       format: "text",
@@ -252,8 +249,8 @@ export class BoxDrive implements Contents.IDrive {
     if (!r.ok) {
       throw new Error();
     }
-    this._boxIDMap.delete(path)
-    this._boxDirFileMap.delete(path)
+
+    this.delete_from_map(path)
   }
 
   async rename(path: string, newPath: string): Promise<Contents.IModel> {
@@ -273,7 +270,7 @@ export class BoxDrive implements Contents.IDrive {
       cache: "no-store"
     })
     const res_json = await r.json();
-    this.build_path(dirname, newname, id)
+    this.build_and_set_to_map(dirname, newname, id, this._boxPathMap.get(path)!.isdir)
 
     return {
       name: newname,
@@ -395,7 +392,7 @@ export class BoxDrive implements Contents.IDrive {
         continue
       }
       const res_json = await r.json();
-      const newpath = this.build_path(toLocalDir, newname, res_json.id)
+      const newpath = this.build_and_set_to_map(toLocalDir, newname, res_json.id, false)
       return {
         name: res_json.name,
         path: newpath,
@@ -574,15 +571,9 @@ export class BoxDrive implements Contents.IDrive {
     })
     return r
   }
-
-  private build_path(path: string, name: string, id: string): string {
-    const newpath = PathExt.join(path, name)
-    this._boxIDMap.set(newpath, id)
-    return newpath
-  }
   
   private async get_file_id(path: string): Promise<string> {
-    let id = this._boxIDMap.get(path)
+    let id = this._boxPathMap.get(path)?.id
     if (id) {
       return id
     }
@@ -594,11 +585,21 @@ export class BoxDrive implements Contents.IDrive {
       await this.get("", {content: true})
       return "0"
     }
-    id = this._boxIDMap.get(path)
+    id = this._boxPathMap.get(path)?.id
     if (id) {
       return id
     }
     throw new Error('ID not found for path');
+  }
+
+  private build_and_set_to_map(dirpath: string, name: string, id: string, isdir: boolean): string {
+    const path = PathExt.join(dirpath, name)
+    this._boxPathMap.set(path, {id: id, isdir: isdir})
+    return path
+  }
+
+  private delete_from_map(path: string) {
+    this._boxPathMap.delete(path)
   }
   
   private get_file_name(path: string): string {
@@ -608,7 +609,9 @@ export class BoxDrive implements Contents.IDrive {
   
   private _isDisposed = false;
   private _fileChanged = new Signal<this, Contents.IChangedArgs>(this);
-  private _boxIDMap = new Map([["", "0"], ["/", "0"]])
-  private _boxDirFileMap = new Map([["", true], ["/", true]])
+  private _boxPathMap = new Map([
+    ["", {id: "0", isdir: true}],
+    ["/", {id: "0", isdir: true}]
+  ])
   private _accessToken: string = "";
 }
