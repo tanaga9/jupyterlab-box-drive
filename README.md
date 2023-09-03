@@ -3,6 +3,14 @@
 [![Github Actions Status](https://github.com/tanaga9/jupyterlab-box-drive/workflows/Build/badge.svg)](https://github.com/tanaga9/jupyterlab-box-drive/actions/workflows/build.yml)
 A JupyterLab extension.
 
+Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
+
+## Motivation
+
+The main motivation for this extension is to give access to Box.com storage in [JupyterLite](https://github.com/jupyterlite/jupyterlite)
+
+[It does not currently work with JupyterLab.](https://discourse.jupyter.org/t/what-is-the-correct-generic-way-to-generate-a-path-url-to-a-static-resource-that-an-extention-has/21228?u=tanaga9)
+
 ## Requirements
 
 - JupyterLab >= 3.0
