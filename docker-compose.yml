@@ -4,9 +4,9 @@ services:
     build: .
     ports:
       - '8888:8888'
+      - '8889:8889'
     volumes:
       - ./dist:/dist
       - .:/work
-    # docker-compose exec dev jlpm watch
-    # docker-compose exec dev jupyter lite build --minimize=False --force --output-dir build
     # docker-compose exec dev python -m build -o /dist
+

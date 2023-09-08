@@ -58,7 +58,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
           '../extensions/jupyterlab-box-drive/static/auth.html',
           'BoxAuth', "width=600,height=600");
       },
-      tooltip: trans.__('Log in - Box')
+      tooltip: trans.__('LogIn - Box'),
+      label: trans.__('login')
     });
     widget.toolbar.insertItem(0, 'get-token', getTokenButton);
 

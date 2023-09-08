@@ -11,22 +11,20 @@ RUN git clone https://github.com/box-community/box-javascript-sdk.git /box-javas
     npm install && \
     npm run build
 
-RUN apt update && apt-get install -y gcc python3-dev
+RUN apt update && apt-get install -y gcc python3-dev supervisor
 COPY pyproject.toml package.json LICENSE README.md /preinstall/
 RUN cd /preinstall && pip install -ve .
 
 WORKDIR /work
-EXPOSE 8888
+EXPOSE 8888 8889
 
 RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 
-COPY . /work
+# COPY . /work
+RUN git clone https://github.com/tanaga9/jupyterlab-box-drive.git /work
 
 CMD pip install -ve . && \
     jupyter labextension develop --overwrite . && \
     cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/. && \
-    python -m build -o /dist && \
-    jupyter lite build --minimize=False --force --output-dir build  && \
-    jupyter lite serve --port=8888 --ip=0.0.0.0 --output-dir build
-    # jupyter lab --no-browser --port=8888 --ip=0.0.0.0 --allow-root --NotebookApp.token=''
-
+    jupyter lite build --minimize=False --force --output-dir build && \
+    /usr/bin/supervisord -c /work/supervisord.conf
