@@ -5,8 +5,14 @@ services:
     ports:
       - '8888:8888'
       - '8889:8889'
+      - '9001:9001'
     volumes:
-      - ./dist:/dist
-      - .:/work
+      #- ./dist:/dist
+      #- .:/work
+      #- ./build:/work/build
+      - ./src:/work/src
+      - ./package.json:/work/package.json
+      - ./webpack.config.js:/work/webpack.config.js
+      - ./supervisord.conf:/work/supervisord.conf
     # docker-compose exec dev python -m build -o /dist
 

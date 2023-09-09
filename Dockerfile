@@ -16,7 +16,7 @@ COPY pyproject.toml package.json LICENSE README.md /preinstall/
 RUN cd /preinstall && pip install -ve .
 
 WORKDIR /work
-EXPOSE 8888 8889
+EXPOSE 8888 8889 9001
 
 RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 
@@ -24,7 +24,5 @@ RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 RUN git clone https://github.com/tanaga9/jupyterlab-box-drive.git /work
 
 CMD pip install -ve . && \
-    jupyter labextension develop --overwrite . && \
     cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/. && \
-    jupyter lite build --minimize=False --force --output-dir build && \
     /usr/bin/supervisord -c /work/supervisord.conf
