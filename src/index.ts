@@ -79,9 +79,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
       tooltip: trans.__('Box | Login'),
       label: trans.__('Box | Login')
     });
+    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
     getTokenButton.removeClass("jp-Toolbar-item");
     getTokenButton.addClass("jp-Toolbar-item-BoxDrive");
-    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
     
     app.shell.add(widget, 'left');
 
