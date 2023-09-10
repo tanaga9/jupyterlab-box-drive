@@ -19,7 +19,10 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "ES2018",
-    "types": ["jest"]
+    "types": ["jest"],
+    "paths": {
+      "@/assets/*": ["./assets/*"]
+    }
   },
   "include": ["src/*"]
 }

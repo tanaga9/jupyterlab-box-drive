@@ -23,6 +23,6 @@ RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
 # COPY . /work
 RUN git clone https://github.com/tanaga9/jupyterlab-box-drive.git /work
 
-CMD pip install -ve . && \
+CMD npm install && pip install -ve . && \
     cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/. && \
     /usr/bin/supervisord -c /work/supervisord.conf

@@ -13,6 +13,10 @@ import { treeViewIcon, launchIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
 
+import AUTH_HTML from '@/assets/auth.html';
+
+console.log(AUTH_HTML)
+
 function loadJS(FILE_URL: string) {
   let scriptElement = document.createElement("script");
   scriptElement.setAttribute("src", FILE_URL);
