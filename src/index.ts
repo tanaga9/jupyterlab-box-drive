@@ -34,12 +34,30 @@ const plugin: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('JupyterLab extension jupyterlab-box-drive is activated!');
 
+    // ---------- Temporary Hack: Get the current URL ----------
+    const current = (function() {
+      if (document.currentScript) {
+        // @ts-ignore
+        return document.currentScript.src;
+      } else {
+        var scripts = document.getElementsByTagName('script'),
+        script = scripts[scripts.length-1];
+        if (script.src) {
+          return script.src + "../../../../";
+        } else {
+          return "/lab/extensions/"
+        }
+      }
+    })();
+    const dirname = current + "jupyterlab-box-drive/static/assets/"
+    // ---------- Temporary Hack: Get the current URL ----------
+
     const { serviceManager } = app;
     const { createFileBrowser } = browser;
 
     const trans = translator.load('jupyterlab-box-drive');
 
-    loadJS("../extensions/jupyterlab-box-drive/static/BoxSdk.min.js");
+    loadJS(dirname + "BoxSdk.min.js");
     const drive = new BoxDrive();
 
     serviceManager.contents.addDrive(drive);
@@ -55,15 +73,15 @@ const plugin: JupyterFrontEndPlugin<void> = {
       icon: launchIcon,
       onClick: async () => {
         cwindow = window.open(
-          '../extensions/jupyterlab-box-drive/static/auth.html',
+          dirname + 'auth.html',
           'BoxAuth', "width=600,height=600");
       },
       tooltip: trans.__('Box | Login'),
       label: trans.__('Box | Login')
     });
-    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
     getTokenButton.removeClass("jp-Toolbar-item");
     getTokenButton.addClass("jp-Toolbar-item-BoxDrive");
+    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
     
     app.shell.add(widget, 'left');
 
