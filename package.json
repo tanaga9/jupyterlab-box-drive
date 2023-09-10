@@ -1,7 +1,7 @@
 {
   "name": "jupyterlab-box-drive",
-  "version": "0.1.2",
-  "description": "A JupyterLab extension.",
+  "version": "0.1.3",
+  "description": "A JupyterLab extension that provides direct access to Box cloud storage.",
   "keywords": [
     "jupyter",
     "jupyterlab",
