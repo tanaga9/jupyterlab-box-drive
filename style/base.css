@@ -3,3 +3,8 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+.jp-Toolbar-item-BoxDrive .jp-ToolbarButtonComponent {
+    width: 8em;
+    background: var(--jp-brand-color3);
+}

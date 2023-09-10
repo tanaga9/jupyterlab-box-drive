@@ -5,8 +5,6 @@ A JupyterLab extension.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
-![How to use](how_to_use.drawio.png)
-
 - [Box Dev Console](https://app.box.com/developers/console)
 - [Create New App](https://app.box.com/developers/console/newapp)
 - [Create a Custom App (OAuth 2.0)](https://developer.box.com/guides/authentication/oauth2/)

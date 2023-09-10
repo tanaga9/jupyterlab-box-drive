@@ -9,7 +9,6 @@ services:
     volumes:
       #- ./dist:/dist
       #- .:/work
-      #- ./build:/work/build
       - ./src:/work/src
       - ./package.json:/work/package.json
       - ./webpack.config.js:/work/webpack.config.js
