@@ -1,5 +1,2 @@
 node_modules
 build/
-dist/
-lib/
-jupyterlab_box_drive/
