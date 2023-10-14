@@ -5,14 +5,21 @@ A JupyterLab extension.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
+[Demonstration](https://tanaga9.github.io/jupyterlab-box-drive/)
+
 - [Box Dev Console](https://app.box.com/developers/console)
 - [Create New App](https://app.box.com/developers/console/newapp)
 - [Create a Custom App (OAuth 2.0)](https://developer.box.com/guides/authentication/oauth2/)
+    OAuth 2.0 (User or Client Authentication)
 - Configuration
     - get OAuth 2.0 Credentials
     - set OAuth 2.0 Redirect URI
+        - example: `https://tanaga9.github.io/jupyterlab-box-drive/extensions/jupyterlab-box-drive/static/assets/auth.html`
     - set Application Scopes
+        - Read all files and folders stored in Box
+        - Write all files and folders stored in Box
     - set CORS Domains
+        - example: `https://tanaga9.github.io`
 
 ## Motivation
 

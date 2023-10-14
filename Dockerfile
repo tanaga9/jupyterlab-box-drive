@@ -1,28 +1,20 @@
-FROM continuumio/miniconda3
+FROM python:3.10
+RUN pip install -U jupyterlab~=3.1 jupyterlite jupyterlite-core==0.1.0 jupyterlite-pyodide-kernel==0.1.0
 
-RUN . /root/.bashrc && \
-    conda init bash && \
-    conda create -n jupyterlab-ext --override-channels --strict-channel-priority \
-        -c conda-forge -c nodefaults jupyterlab=3 cookiecutter nodejs jupyter-packaging git && \
-    conda activate jupyterlab-ext
-ENV PATH $PATH:/opt/conda/envs/jupyterlab-ext/bin
-RUN git clone https://github.com/box-community/box-javascript-sdk.git /box-javascript-sdk && \
-    cd /box-javascript-sdk && \
-    npm install && \
-    npm run build
+RUN pip install jupyterlab-box-drive
 
-RUN apt update && apt-get install -y gcc python3-dev supervisor
-COPY pyproject.toml package.json LICENSE README.md /preinstall/
-RUN cd /preinstall && pip install -ve .
+# build jupyterlab-box-drive
+# --------------------------
 
-WORKDIR /work
-EXPOSE 8888 8889 9001
+# RUN apt update && apt install -y curl nodejs npm git
+# RUN npm install n -g && n lts && apt purge -y nodejs npm
+# RUN pip uninstall -y jupyterlab-box-drive
+# # COPY . /work
+# RUN git clone https://github.com/tanaga9/jupyterlab-box-drive.git /work
+# COPY ./src /work/src
+# RUN cd /work && /bin/sh -c " \
+#           pip install . && \
+#           pip install build && \
+#           python -m build"
 
-RUN pip install build jupyterlab-favorites ipydrawio jupyterlite
-
-# COPY . /work
-RUN git clone https://github.com/tanaga9/jupyterlab-box-drive.git /work
-
-CMD pip install -ve . && \
-    cp /box-javascript-sdk/lib/BoxSdk.min.js /work/src/. && \
-    /usr/bin/supervisord -c /work/supervisord.conf
+CMD jupyter lite build --output-dir _site && jupyter lite serve --port=8888 --ip=0.0.0.0 --output-dir _site
