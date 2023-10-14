@@ -1,5 +1,5 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+# Sample workflow for building and deploying a JupyterLite site to GitHub Pages
+name: Deploy JupyterLite with GitHub Pages dependencies preinstalled
 
 on:
   # Runs on pushes targeting the default branch
@@ -28,17 +28,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
-      #- name: Build with Jekyll
-      #  uses: actions/jekyll-build-pages@v1
-      #  with:
-      #    source: ./
-      #    destination: ./_site
+
+      - name: Base Setup
+        uses: jupyterlab/maintainer-tools/.github/actions/base-setup@v1
+  
       - name: Build
         run: |
-          mkdir ./_site
-          echo "<h1>Hello GitHub Pages!</h1>" > ./_site/index.html
+          set -eux
+          pip install -U jupyterlab~=3.1
+          pip install .[test]
+          pip install build
+          python -m build
+          pip install jupyterlite jupyterlite-core==0.1.0 jupyterlite-pyodide-kernel==0.1.0
+          jupyter lite build --output-dir _site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
 
