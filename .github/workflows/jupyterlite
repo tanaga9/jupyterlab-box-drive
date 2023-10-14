@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          mkdir data
+          echo "<h1>Hello GitHub Pages!</h1>" > data/index.html          
+      - uses: actions/upload-artifact@v3
+        with:
+          name: jupyterlite
+          path: data
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: data
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/deploy-pages@v1
+        id: deployment
