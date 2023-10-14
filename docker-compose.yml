@@ -1,7 +1,9 @@
 version: "3.9"
 services:
   dev:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile_dev
     ports:
       - '8888:8888'
       - '8889:8889'
