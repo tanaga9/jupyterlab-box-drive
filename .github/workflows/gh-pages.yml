@@ -38,11 +38,9 @@ jobs:
       - name: Build
         run: |
           set -eux
-          pip install -U jupyterlab~=3.1
-          pip install .[test]
+          pip install -r requirements_for_jupyter_lite_build.txt
           pip install build
-          python -m build
-          pip install jupyterlite jupyterlite-core==0.1.0 jupyterlite-pyodide-kernel==0.1.0
+          pip install .
           jupyter lite build --output-dir _site
 
       - name: Upload artifact
