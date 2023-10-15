@@ -15,7 +15,23 @@ import { treeViewIcon, launchIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
 
-const currentScript = document.currentScript;
+// ---------- Temporary Hack: Get the current URL ----------
+const current = (function() {
+  const currentScript = document.currentScript
+  if (currentScript) {
+    // @ts-ignore
+    return URLExt.parse(currentScript.src).pathname + "/../";
+  } else {
+    const scripts = document.getElementsByTagName('script');
+    const script = scripts[scripts.length-1];
+    if (script.src) {
+      return URLExt.parse(script.src).pathname + "/../";
+    } else {
+      return "/lab/extensions/jupyterlab-box-drive/static/"
+    }
+  }
+})();
+// ---------- Temporary Hack: Get the current URL ----------
 
 function loadJS(FILE_URL: string) {
   let scriptElement = document.createElement("script");
@@ -37,23 +53,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
     translator: ITranslator
   ) => {
     console.log('JupyterLab extension jupyterlab-box-drive is activated!');
-
-    // ---------- Temporary Hack: Get the current URL ----------
-    const current = (function() {
-      if (currentScript) {
-        // @ts-ignore
-        return URLExt.parse(currentScript.src).pathname + "/../";
-      } else {
-        var scripts = document.getElementsByTagName('script'),
-        script = scripts[scripts.length-1];
-        if (script.src) {
-          return URLExt.parse(script.src).pathname + "/../";
-        } else {
-          return "/lab/extensions/jupyterlab-box-drive/static/"
-        }
-      }
-    })();
-    // ---------- Temporary Hack: Get the current URL ----------
 
     const { serviceManager } = app;
     const { createFileBrowser } = browser;
