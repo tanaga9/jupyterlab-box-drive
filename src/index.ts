@@ -3,6 +3,8 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
+import { URLExt } from '@jupyterlab/coreutils';
+
 import { ToolbarButton } from '@jupyterlab/apputils';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
@@ -12,6 +14,8 @@ import { ITranslator } from '@jupyterlab/translation';
 import { treeViewIcon, launchIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
+
+const currentScript = document.currentScript;
 
 function loadJS(FILE_URL: string) {
   let scriptElement = document.createElement("script");
@@ -36,20 +40,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     // ---------- Temporary Hack: Get the current URL ----------
     const current = (function() {
-      if (document.currentScript) {
+      if (currentScript) {
         // @ts-ignore
-        return document.currentScript.src;
+        return URLExt.parse(currentScript.src).pathname + "/../";
       } else {
         var scripts = document.getElementsByTagName('script'),
         script = scripts[scripts.length-1];
         if (script.src) {
-          return script.src + "../../../../";
+          return URLExt.parse(script.src).pathname + "/../";
         } else {
-          return "/lab/extensions/"
+          return "/lab/extensions/jupyterlab-box-drive/static/"
         }
       }
     })();
-    const dirname = current + "jupyterlab-box-drive/static/assets/"
     // ---------- Temporary Hack: Get the current URL ----------
 
     const { serviceManager } = app;
@@ -57,7 +60,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
 
     const trans = translator.load('jupyterlab-box-drive');
 
-    loadJS(dirname + "BoxSdk.min.js");
+    loadJS(current + "assets/BoxSdk.min.js");
     const drive = new BoxDrive();
 
     serviceManager.contents.addDrive(drive);
@@ -73,7 +76,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       icon: launchIcon,
       onClick: async () => {
         cwindow = window.open(
-          dirname + 'auth.html',
+          current + 'assets/auth.html',
           'BoxAuth', "width=600,height=600");
       },
       tooltip: trans.__('Box | Login'),
