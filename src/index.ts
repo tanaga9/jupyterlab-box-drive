@@ -5,13 +5,13 @@ import {
 
 import { URLExt } from '@jupyterlab/coreutils';
 
-import { ToolbarButton } from '@jupyterlab/apputils';
+import { ToolbarButton, showDialog } from '@jupyterlab/apputils';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ITranslator } from '@jupyterlab/translation';
 
-import { treeViewIcon, launchIcon } from '@jupyterlab/ui-components';
+import { treeViewIcon, launchIcon, pasteIcon } from '@jupyterlab/ui-components';
 
 import { BoxDrive } from './drive';
 
@@ -71,6 +71,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     widget.title.caption = trans.__('Box');
     widget.title.icon = treeViewIcon;
 
+    // https://github.com/jupyterlab/jupyterlab/tree/main/packages/ui-components/style/icons/toolbar
+
     const getTokenButton = new ToolbarButton({
       icon: launchIcon,
       onClick: async () => {
@@ -84,7 +86,29 @@ const plugin: JupyterFrontEndPlugin<void> = {
     widget.toolbar.insertItem(0, 'get-token', getTokenButton);
     getTokenButton.removeClass("jp-Toolbar-item");
     getTokenButton.addClass("jp-Toolbar-item-BoxDrive");
-    
+
+    const getJsonButton = new ToolbarButton({
+      icon: pasteIcon,
+      onClick: async () => {
+        if (RefreshToken && navigator.clipboard) {
+          navigator.clipboard.writeText(JSON.stringify({
+            'client_id': ClientID,
+            'client_secret': ClientSecret,
+            'refresh_token': RefreshToken,
+            'access_token': AccessToken,
+          })).then(() => {
+            showDialog({
+              title: 'Copied OAuth2 info to clipboard',
+            })
+          }, () => {
+            alert('The Clipboard API is not available')
+          });
+        }
+      },
+      tooltip: trans.__('Copy OAuth2 info to clipboard')
+    });
+    widget.toolbar.insertItem(1, 'get-json', getJsonButton);
+
     app.shell.add(widget, 'left');
 
     var cwindow: any = null
@@ -92,6 +116,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     var ClientID: string
     var ClientSecret: string
     var RefreshToken: string = ""
+    var AccessToken: string = ""
     var ExpiresAt: Number = 0
 
     const getAccessToken = async function(){
@@ -110,7 +135,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
       RefreshToken = res_json.refresh_token
       ExpiresAt = (new Date()).getTime() + res_json.expires_in * 1000
-      drive.accessToken = res_json.access_token
+      AccessToken = res_json.access_token
+      drive.accessToken = AccessToken
     }
     const timer = async function(){
       try {
