@@ -42,6 +42,7 @@ jobs:
           pip install build
           pip install .
           jupyter lite build --output-dir _site
+          python -m build
           cp dist/* _site/.
 
       - name: Upload artifact
