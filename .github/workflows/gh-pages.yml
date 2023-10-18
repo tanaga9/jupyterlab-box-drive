@@ -43,7 +43,7 @@ jobs:
           pip install .
           jupyter lite build --output-dir _site
           python -m build
-          cp dist/* _site/.
+          cp dist/*.whl _site/.
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
