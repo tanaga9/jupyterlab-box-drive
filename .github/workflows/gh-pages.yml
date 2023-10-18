@@ -43,6 +43,7 @@ jobs:
           pip install .
           jupyter lite build --output-dir _site
           python -m build
+          chmod 644 dist/*.whl
           cp dist/*.whl _site/.
 
       - name: Upload artifact
