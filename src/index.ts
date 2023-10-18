@@ -94,7 +94,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
           navigator.clipboard.writeText(JSON.stringify({
             'client_id': ClientID,
             'client_secret': ClientSecret,
-            'refresh_token': RefreshToken,
             'access_token': AccessToken,
           })).then(() => {
             showDialog({
