@@ -15,7 +15,7 @@ from typing import Dict
 class Input:
     oauth: Dict
 
-async def input(clear: bool=True)-> Input | None:
+async def input_box(clear: bool=True)-> Input | None:
     import types, json
 
     message = "OAuth2 info"
