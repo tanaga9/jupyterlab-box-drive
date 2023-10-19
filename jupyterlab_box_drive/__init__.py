@@ -8,24 +8,33 @@ def _jupyter_labextension_paths():
     }]
 
 
-async def input_oauth2info(clear=True):
+from dataclasses import dataclass
+from typing import Dict
+
+@dataclass
+class Input:
+    oauth: Dict
+
+async def input(clear: bool=True)-> Input | None:
     import types, json
 
     message = "OAuth2 info"
 
     if isinstance(input, types.FunctionType):
-        oauth2json = await input(message) # JupyterLite
+        s = await input(message) # JupyterLite
     else:
-        oauth2json = input(message) # JupyterLab
+        s = input(message) # JupyterLab
 
-    if oauth2json == "":
+    if s == "":
         return None
 
-    oauth2dict = json.loads(oauth2json)
+    d = json.loads(s)
+    i = Input(d["oauth"])
 
     if clear:
         from IPython.display import clear_output, display, Javascript
         clear_output()
         display(Javascript('navigator.clipboard.writeText("")'))
 
-    return oauth2dict
+    return i
+

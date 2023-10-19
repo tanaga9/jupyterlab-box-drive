@@ -92,9 +92,11 @@ const plugin: JupyterFrontEndPlugin<void> = {
       onClick: async () => {
         if (RefreshToken && navigator.clipboard) {
           navigator.clipboard.writeText(JSON.stringify({
-            'client_id': ClientID,
-            'client_secret': ClientSecret,
-            'access_token': AccessToken,
+            'oauth': {
+              'client_id': ClientID,
+              'client_secret': ClientSecret,
+              'access_token': AccessToken,
+            }
           })).then(() => {
             showDialog({
               title: 'Copied OAuth2 info to clipboard',
