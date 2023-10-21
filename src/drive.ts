@@ -6,7 +6,7 @@ import { ISignal, Signal } from '@lumino/signaling';
 
 declare var BoxSdk: any;
 
-export const DRIVE_NAME = 'Box';
+export const DRIVE_NAME = 'box';
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = '';
