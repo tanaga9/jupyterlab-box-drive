@@ -7,34 +7,38 @@ def _jupyter_labextension_paths():
         "dest": "jupyterlab-box-drive"
     }]
 
+# ----------------------------------------
 
-from dataclasses import dataclass
-from typing import Dict
+from typing import Dict #, Self
+import types, json
 
-@dataclass
-class Input:
-    oauth: Dict
+class _OAuth(Dict):
+    @property
+    def access_token(self): return self["access_token"]
 
-async def input_box(clear: bool=True)-> Input | None:
-    import types, json
+class JupyterlabBoxDrive:
+    oauth: _OAuth = {}
 
-    message = "OAuth2 info"
+    def __init__(self) -> None:
+        pass
 
-    if isinstance(input, types.FunctionType):
-        s = await input(message) # JupyterLite
-    else:
-        s = input(message) # JupyterLab
+    async def inputs(self, clear: bool=True): #-> Self:
+        message = "OAuth2 info"
 
-    if s == "":
-        return None
+        if isinstance(input, types.FunctionType):
+            s = await input(message) # JupyterLite
+        else:
+            s = input(message) # JupyterLab
 
-    d = json.loads(s)
-    i = Input(d["oauth"])
+        if s == "":
+            return self
 
-    if clear:
-        from IPython.display import clear_output, display, Javascript
-        clear_output()
-        display(Javascript('navigator.clipboard.writeText("")'))
+        d = json.loads(s)
+        self.oauth = _OAuth(d["oauth"])
 
-    return i
+        if clear:
+            from IPython.display import clear_output, display, Javascript
+            clear_output()
+            display(Javascript('navigator.clipboard.writeText("")'))
 
+        return self

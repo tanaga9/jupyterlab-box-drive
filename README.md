@@ -5,7 +5,7 @@ A JupyterLab extension.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
-[Demonstration](https://tanaga9.github.io/jupyterlab-box-drive/lab/index.html?path=Getting+Started.ipynb)
+[Demonstration](https://tanaga9.github.io/jupyterlab-box-drive/lab/index.html?path=Getting+Started.ipynb) ([Getting Started.ipynb](files/Getting%20Started.ipynb))
 
 - [Box Dev Console](https://app.box.com/developers/console)
 - [Create New App](https://app.box.com/developers/console/newapp)
@@ -21,11 +21,15 @@ Browse Box.com storage using [box-javascript-sdk](https://github.com/box-communi
     - set CORS Domains
         - example: `https://tanaga9.github.io`
 
-## Motivation
+## Concept
 
-The main motivation for this extension is to give access to Box.com storage in [JupyterLite](https://github.com/jupyterlite/jupyterlite)
+![Conceptual diagram](files/jupyterlab-box-drive.drawio.png)
 
-[It does not currently work with JupyterLab.](https://discourse.jupyter.org/t/what-is-the-correct-generic-way-to-generate-a-path-url-to-a-static-resource-that-an-extention-has/21228?u=tanaga9)
+## Purpose
+
+The first purpose of this extension is to provide access to Box.com storage for [JupyterLite](https://github.com/jupyterlite/jupyterlite).
+
+It probably works fine in jupyterlab.
 
 ## Requirements
 
@@ -45,6 +49,12 @@ To remove the extension, execute:
 
 ```bash
 pip uninstall jupyterlab_box_drive
+```
+
+## Quick Start with Docker
+
+```
+docker build -t jupyterlab-box-drive . && docker run --rm -p 8888:8888 jupyterlab-box-drive
 ```
 
 ## Contributing
