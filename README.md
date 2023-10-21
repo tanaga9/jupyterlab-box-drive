@@ -23,7 +23,7 @@ Browse Box.com storage using [box-javascript-sdk](https://github.com/box-communi
 
 ## Concept
 
-![Conceptual diagram](files/jupyterlab-box-drive.drawio.png)
+![Conceptual diagram](https://raw.githubusercontent.com/tanaga9/jupyterlab-box-drive/main/files/jupyterlab-box-drive.drawio.png)
 
 ## Purpose
 
