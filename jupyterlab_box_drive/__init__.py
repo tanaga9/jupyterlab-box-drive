@@ -31,7 +31,7 @@ class JupyterlabBoxDrive:
             s = input(message) # JupyterLab
 
         if s == "":
-            return Self
+            return self
 
         d = json.loads(s)
         self.oauth = _OAuth(d["oauth"])
