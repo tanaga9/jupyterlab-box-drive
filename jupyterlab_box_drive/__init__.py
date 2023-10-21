@@ -22,7 +22,7 @@ class JupyterlabBoxDrive:
     def __init__(self: Self) -> None:
         pass
 
-    async def input(self: Self, clear: bool=True)-> Self:
+    async def inputs(self: Self, clear: bool=True)-> Self:
         message = "OAuth2 info"
 
         if isinstance(input, types.FunctionType):
