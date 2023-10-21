@@ -65,14 +65,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
     serviceManager.contents.addDrive(drive);
 
     const widget = createFileBrowser('jp-box-browser', {
-      driveName: drive.name,
-      restore: true
+      refreshInterval: 5000, // The time interval for browser refreshing, in ms.
+      driveName: drive.name
     });
-    widget.title.caption = trans.__('Box');
+    widget.title.caption = trans.__('Box cloud content storage');
     widget.title.icon = treeViewIcon;
+    widget.showLastModifiedColumn = false;
+    // GET List items in folder API
+    // https://developer.box.com/reference/resources/folder--full/
+    // items have no last updated date
+    // https://developer.box.com/reference/resources/items/
+    // N+1 query problem
 
     // https://github.com/jupyterlab/jupyterlab/tree/main/packages/ui-components/style/icons/toolbar
-
     const getTokenButton = new ToolbarButton({
       icon: launchIcon,
       onClick: async () => {
