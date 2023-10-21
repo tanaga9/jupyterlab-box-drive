@@ -47,6 +47,12 @@ To remove the extension, execute:
 pip uninstall jupyterlab_box_drive
 ```
 
+## Quick Start with Docker
+
+```
+docker build -t jupyterlab-box-drive . && docker run --rm -p 8888:8888 jupyterlab-box-drive
+```
+
 ## Contributing
 
 ### Development install
