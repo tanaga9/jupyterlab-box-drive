@@ -9,20 +9,20 @@ def _jupyter_labextension_paths():
 
 # ----------------------------------------
 
-from typing import Dict, Self
+from typing import Dict #, Self
 import types, json
 
 class _OAuth(Dict):
     @property
-    def access_token(self: Self): return self["access_token"]
+    def access_token(self): return self["access_token"]
 
 class JupyterlabBoxDrive:
     oauth: _OAuth = {}
 
-    def __init__(self: Self) -> None:
+    def __init__(self) -> None:
         pass
 
-    async def inputs(self: Self, clear: bool=True)-> Self:
+    async def inputs(self, clear: bool=True): #-> Self:
         message = "OAuth2 info"
 
         if isinstance(input, types.FunctionType):
