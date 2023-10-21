@@ -25,11 +25,11 @@ Browse Box.com storage using [box-javascript-sdk](https://github.com/box-communi
 
 ![Conceptual diagram](files/jupyterlab-box-drive.drawio.png)
 
-## Motivation
+## Purpose
 
-The main motivation for this extension is to give access to Box.com storage in [JupyterLite](https://github.com/jupyterlite/jupyterlite)
+The first purpose of this extension is to provide access to Box.com storage for [JupyterLite](https://github.com/jupyterlite/jupyterlite).
 
-[It does not currently work with JupyterLab.](https://discourse.jupyter.org/t/what-is-the-correct-generic-way-to-generate-a-path-url-to-a-static-resource-that-an-extention-has/21228?u=tanaga9)
+It probably works fine in jupyterlab.
 
 ## Requirements
 
