@@ -17,7 +17,7 @@ class _OAuth(Dict):
     def access_token(self: Self): return self["access_token"]
 
 class JupyterlabBoxDrive:
-    oauth: _OAuth | None = None
+    oauth: _OAuth = {}
 
     def __init__(self: Self) -> None:
         pass
@@ -31,7 +31,7 @@ class JupyterlabBoxDrive:
             s = input(message) # JupyterLab
 
         if s == "":
-            return Self
+            return self
 
         d = json.loads(s)
         self.oauth = _OAuth(d["oauth"])
