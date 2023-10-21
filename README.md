@@ -5,7 +5,7 @@ A JupyterLab extension.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
-[Demonstration](https://tanaga9.github.io/jupyterlab-box-drive/lab/index.html?path=Getting+Started.ipynb)
+[Demonstration](https://tanaga9.github.io/jupyterlab-box-drive/lab/index.html?path=Getting+Started.ipynb) ([Getting Started.ipynb](files/Getting%20Started.ipynb))
 
 - [Box Dev Console](https://app.box.com/developers/console)
 - [Create New App](https://app.box.com/developers/console/newapp)
@@ -20,6 +20,10 @@ Browse Box.com storage using [box-javascript-sdk](https://github.com/box-communi
         - Write all files and folders stored in Box
     - set CORS Domains
         - example: `https://tanaga9.github.io`
+
+## Concept
+
+![Conceptual diagram](files/jupyterlab-box-drive.drawio.png)
 
 ## Motivation
 
