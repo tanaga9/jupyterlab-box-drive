@@ -44,7 +44,7 @@ jobs:
           jupyter lite build --output-dir _site
           python -m build
           chmod 644 dist/*.whl
-          cp dist/jupyterlab_box_drive-?.?.?-py3-none-any.whl _site/jupyterlab_box_drive-x.x.x-py3-none-any.whl
+          cp dist/jupyterlab_box_drive-?.?.?-py3-none-any.whl _site/jupyterlab_box_drive-0.0.0-py3-none-any.whl
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
