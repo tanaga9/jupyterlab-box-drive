@@ -158,8 +158,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
           await getAccessToken()
           cwindow.close()
           cwindow = null
-        } else if (RefreshToken && ExpiresAt > 0 &&
-          (new Date()).getTime() + 10 * 60 * 1000 > ExpiresAt) {
+        } else if (RefreshToken && ExpiresAt > new Number(0) &&
+          (new Number((new Date()).getTime() + 10 * 60 * 1000)) > ExpiresAt) {
           await getAccessToken()
         }
       } catch (e) {
