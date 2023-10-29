@@ -1,7 +1,7 @@
 # jupyterlab_box_drive
 
 [![Github Actions Status](https://github.com/tanaga9/jupyterlab-box-drive/workflows/Build/badge.svg)](https://github.com/tanaga9/jupyterlab-box-drive/actions/workflows/build.yml)
-A JupyterLab extension.
+A JupyterLab extension that provides direct access to Box cloud storage.
 
 Browse Box.com storage using [box-javascript-sdk](https://github.com/box-community/box-javascript-sdk) and the Box REST API.
 
@@ -33,7 +33,7 @@ It probably works fine in jupyterlab.
 
 ## Requirements
 
-- JupyterLab >= 3.0
+- JupyterLab >= 4.0.0
 
 ## Install
 
@@ -120,7 +120,7 @@ jlpm test
 
 #### Integration tests
 
-This extension uses [Playwright](https://playwright.dev/docs/intro/) for the integration tests (aka user level tests).
+This extension uses [Playwright](https://playwright.dev/docs/intro) for the integration tests (aka user level tests).
 More precisely, the JupyterLab helper [Galata](https://github.com/jupyterlab/jupyterlab/tree/master/galata) is used to handle testing the extension in JupyterLab.
 
 More information are provided within the [ui-tests](./ui-tests/README.md) README.
