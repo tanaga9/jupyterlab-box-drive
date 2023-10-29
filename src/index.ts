@@ -5,7 +5,7 @@ import {
 
 import { URLExt } from '@jupyterlab/coreutils';
 
-import { ToolbarButton, showDialog } from '@jupyterlab/apputils';
+import { ToolbarButton, showDialog, /* Notification */ } from '@jupyterlab/apputils';
 
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
@@ -106,8 +106,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
             showDialog({
               title: 'Copied OAuth2 info to clipboard',
             })
+            // Notification.emit('Copied info for JupyterlabBoxDrive to clipboard', "default", {autoClose: 3000});
           }, () => {
-            alert('The Clipboard API is not available')
+            // alert('The Clipboard API is not available')
+            showDialog({
+              title: 'The Clipboard API is not available',
+            });
           });
         }
       },
