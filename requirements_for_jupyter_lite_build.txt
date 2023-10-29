@@ -1,6 +1,6 @@
 jupyterlab>=4.0.0,<5
 jupyterlite
-jupyterlite-core=
+jupyterlite-core
 jupyterlite-pyodide-kernel
 jupyterlite-javascript-kernel
 jupyterlab-filesystem-access
