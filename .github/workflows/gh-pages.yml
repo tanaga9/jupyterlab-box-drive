@@ -43,6 +43,7 @@ jobs:
           pip install -r requirements_for_jupyter_lite_build.txt
           pip install build
           pip install .
+          pip freeze > files/pip-freeze.txt
           jupyter lite build --output-dir _site
           python -m build
           chmod 644 dist/*.whl
