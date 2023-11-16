@@ -22,5 +22,5 @@ jobs:
       - name: Upload Distributions
         uses: actions/upload-artifact@v3
         with:
-          name: jupyterlab_box_drive-releaser-dist-${{ github.run_number }}
+          name: jupyterlab-box-drive-releaser-dist-${{ github.run_number }}
           path: .jupyter_releaser_checkout/dist
