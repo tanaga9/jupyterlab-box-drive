@@ -19,8 +19,8 @@ jobs:
 
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Distributions
-        uses: actions/upload-artifact@v3
-        with:
-          name: jupyterlab-box-drive-releaser-dist-${{ github.run_number }}
-          path: .jupyter_releaser_checkout/dist
+      # - name: Upload Distributions
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: jupyterlab-box-drive-releaser-dist-${{ github.run_number }}
+      #     path: .jupyter_releaser_checkout/dist
