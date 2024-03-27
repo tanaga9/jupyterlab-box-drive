@@ -340,6 +340,7 @@ export class BoxDrive implements Contents.IDrive {
     let data: Contents.IModel;
     try {
       var id = await this.get_file_id(path);
+      // @ts-ignore
       data = await this.get_file_content(client, id, path, options, last_modified)
     } catch (e) {
       data = {

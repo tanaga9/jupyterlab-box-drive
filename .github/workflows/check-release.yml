@@ -9,6 +9,8 @@ jobs:
   check_release:
     runs-on: ubuntu-latest
     steps:
+      - name: Install yarn (for act)
+        run: npm install --global yarn
       - name: Checkout
         uses: actions/checkout@v3
       - name: Base Setup

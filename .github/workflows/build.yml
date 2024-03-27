@@ -14,6 +14,9 @@ jobs:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
     steps:
+    - name: Install yarn (for act)
+      run: npm install --global yarn
+
     - name: Checkout
       uses: actions/checkout@v3
 

@@ -57,6 +57,12 @@ pip uninstall jupyterlab_box_drive
 docker build -t jupyterlab-box-drive . && docker run --rm -p 8888:8888 jupyterlab-box-drive
 ```
 
+## act (Run GitHub Actions locally)
+
+```
+act -P ubuntu-latest=catthehacker/ubuntu:act-20.04
+```
+
 ## Contributing
 
 ### Development install
