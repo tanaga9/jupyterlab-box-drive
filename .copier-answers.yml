@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.2.3
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: tanaga9@users.noreply.github.com
+author_name: tanaga9
+has_binder: false
+has_settings: false
+kind: frontend
+labextension_name: jupyterlab-box-drive
+project_short_description: A JupyterLab extension that provides direct access to Box
+    cloud storage.
+python_name: jupyterlab_box_drive
+repository: https://github.com/tanaga9/jupyterlab-box-drive.git
+test: true
+

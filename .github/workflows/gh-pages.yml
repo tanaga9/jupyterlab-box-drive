@@ -25,6 +25,8 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    env:
+      YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -41,10 +43,11 @@ jobs:
           pip install -r requirements_for_jupyter_lite_build.txt
           pip install build
           pip install .
+          pip freeze > files/pip-freeze.txt
           jupyter lite build --output-dir _site
           python -m build
           chmod 644 dist/*.whl
-          cp dist/*.whl _site/.
+          cp dist/jupyterlab_box_drive-?.?.?-py3-none-any.whl _site/jupyterlab_box_drive-0.0.0-py3-none-any.whl
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
