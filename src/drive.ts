@@ -251,15 +251,21 @@ export class BoxDrive implements Contents.IDrive {
     }
 
     this.delete_from_map(path)
+
+    this._fileChanged.emit({
+      type: 'delete',
+      oldValue: { path: path },
+      newValue: null
+    });
   }
 
-  async rename(path: string, newPath: string): Promise<Contents.IModel> {
+  async rename(oldPath: string, newPath: string): Promise<Contents.IModel> {
     var client = new (new BoxSdk()).BasicBoxClient({
       accessToken: this._accessToken, noRequestMode: true});
 
-    const id = await this.get_file_id(path)
+    const id = await this.get_file_id(oldPath)
     const newname = this.get_file_name(newPath)
-    let dirname = PathExt.dirname(path)
+    let dirname = PathExt.dirname(oldPath)
 
     const opt = await client.files.updateInfo({id, name: newname})
     var r = await fetch(opt.url, {
@@ -270,9 +276,9 @@ export class BoxDrive implements Contents.IDrive {
       cache: "no-store"
     })
     const res_json = await r.json();
-    this.get_abspath_and_set_to_map(dirname, newname, id, this._boxAbsPathMap.get(path)!.isdir)
+    this.get_abspath_and_set_to_map(dirname, newname, id, this._boxAbsPathMap.get(oldPath)!.isdir)
 
-    return {
+    const model: Contents.IModel = {
       name: newname,
       path: newPath,
       created: new Date(res_json.content_created_at).toISOString(),
@@ -283,6 +289,14 @@ export class BoxDrive implements Contents.IDrive {
       writable: true,
       type: 'file'
     }
+
+    this._fileChanged.emit({
+      type: 'rename',
+      oldValue: { path: oldPath },
+      newValue: model
+    });
+
+    return model
   }
 
   async save(
@@ -331,11 +345,13 @@ export class BoxDrive implements Contents.IDrive {
     const res_json = await r.json();
     console.log(res_json)
 
+    /*
     this._fileChanged.emit({
       type: 'save',
       oldValue: null,
       newValue: contentBlob
     });
+    */
 
     let data: Contents.IModel;
     try {

@@ -5,15 +5,33 @@ import {
 
 import { URLExt } from '@jupyterlab/coreutils';
 
-import { ToolbarButton, showDialog, /* Notification */ } from '@jupyterlab/apputils';
+import {
+  createToolbarFactory,
+  setToolbar,
+  IToolbarWidgetRegistry,
+  ToolbarButton,
+  showDialog,
+  /* Notification */
+} from '@jupyterlab/apputils';
 
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import {
+  IFileBrowserFactory,
+  FileBrowser,
+  Uploader
+} from '@jupyterlab/filebrowser';
 
-import { ITranslator } from '@jupyterlab/translation';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
-import { treeViewIcon, launchIcon, pasteIcon } from '@jupyterlab/ui-components';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import {
+  launchIcon,
+  pasteIcon,
+  IScore,
+  FilenameSearcher,
+  treeViewIcon
+} from '@jupyterlab/ui-components';
 
-import { BoxDrive } from './drive';
+import { DRIVE_NAME, BoxDrive } from './drive';
 
 // ---------- Temporary Hack: Get the current URL ----------
 const current = (function() {
@@ -41,16 +59,24 @@ function loadJS(FILE_URL: string) {
 }
 
 /**
+ * The class name added to the filebrowser filterbox node.
+ */
+const FILTERBOX_CLASS = 'jp-FileBrowser-filterBox';
+
+/**
  * Initialization data for the jupyterlab-box-drive extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-box-drive:plugin',
   requires: [IFileBrowserFactory, ITranslator],
+  optional: [ISettingRegistry, IToolbarWidgetRegistry],
   autoStart: true,
   activate: (
     app: JupyterFrontEnd,
     browser: IFileBrowserFactory,
-    translator: ITranslator
+    translator: ITranslator,
+    settingRegistry: ISettingRegistry | null,
+    toolbarRegistry: IToolbarWidgetRegistry | null
   ) => {
     console.log('JupyterLab extension jupyterlab-box-drive is activated!');
 
@@ -70,56 +96,121 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
     widget.title.caption = trans.__('Box cloud content storage');
     widget.title.icon = treeViewIcon;
-    widget.showLastModifiedColumn = false;
+
     // GET List items in folder API
     // https://developer.box.com/reference/resources/folder--full/
     // items have no last updated date
     // https://developer.box.com/reference/resources/items/
     // N+1 query problem
+    widget.showLastModifiedColumn = false;
+    widget.showFileSizeColumn = false;
+    widget.showFileCheckboxes = false;
 
-    // https://github.com/jupyterlab/jupyterlab/tree/main/packages/ui-components/style/icons/toolbar
-    const getTokenButton = new ToolbarButton({
-      icon: launchIcon,
-      onClick: async () => {
-        cwindow = window.open(
-          current + 'assets/auth.html',
-          'BoxAuth', "width=600,height=600");
-      },
-      tooltip: trans.__('Box | Login'),
-      label: trans.__('Box | Login')
-    });
-    widget.toolbar.insertItem(0, 'get-token', getTokenButton);
-    getTokenButton.removeClass("jp-Toolbar-item");
-    getTokenButton.addClass("jp-Toolbar-item-BoxDrive");
+    const toolbar = widget.toolbar;
+    toolbar.id = 'jp-boxdrive-toolbar';
 
-    const getJsonButton = new ToolbarButton({
-      icon: pasteIcon,
-      onClick: async () => {
-        if (RefreshToken && navigator.clipboard) {
-          navigator.clipboard.writeText(JSON.stringify({
-            'oauth': {
-              'client_id': ClientID,
-              'client_secret': ClientSecret,
-              'access_token': AccessToken,
-            }
-          })).then(() => {
-            showDialog({
-              title: 'Copied OAuth2 info to clipboard',
-            })
-            // Notification.emit('Copied info for JupyterlabBoxDrive to clipboard', "default", {autoClose: 3000});
-          }, () => {
-            // alert('The Clipboard API is not available')
-            showDialog({
-              title: 'The Clipboard API is not available',
-            });
+    if (toolbarRegistry && settingRegistry) {
+      // Set toolbar
+      setToolbar(
+        toolbar,
+        createToolbarFactory(
+          toolbarRegistry,
+          settingRegistry,
+          DRIVE_NAME,
+          plugin.id,
+          translator ?? nullTranslator
+        ),
+        toolbar
+      );
+
+      toolbarRegistry.addFactory(
+        DRIVE_NAME,
+        'get-token',
+        (browser: FileBrowser) => {
+          const getTokenButton = new ToolbarButton({
+            icon: launchIcon,
+            onClick: async () => {
+              cwindow = window.open(
+                current + 'assets/auth.html',
+                'BoxAuth', "width=600,height=600");
+            },
+            // https://github.com/jupyterlab/jupyterlab/tree/main/packages/ui-components/style/icons/toolbar
+            tooltip: trans.__('Box | Login'),
+            label: trans.__('Box | Login')      
           });
+          getTokenButton.removeClass("jp-Toolbar-item");
+          getTokenButton.addClass("jp-Toolbar-item-BoxDrive");      
+          return getTokenButton;
         }
-      },
-      tooltip: trans.__('Copy OAuth2 info to clipboard')
-    });
-    widget.toolbar.insertItem(1, 'get-json', getJsonButton);
+      );
 
-    app.shell.add(widget, 'left');
+      toolbarRegistry.addFactory(
+        DRIVE_NAME,
+        'get-json',
+        (browser: FileBrowser) => {
+          const getJsonButton = new ToolbarButton({
+            icon: pasteIcon,
+            onClick: async () => {
+              if (RefreshToken && navigator.clipboard) {
+                navigator.clipboard.writeText(JSON.stringify({
+                  'oauth': {
+                    'client_id': ClientID,
+                    'client_secret': ClientSecret,
+                    'access_token': AccessToken,
+                  }
+                })).then(() => {
+                  showDialog({
+                    title: 'Copied OAuth2 info to clipboard',
+                  })
+                  // Notification.emit('Copied info for JupyterlabBoxDrive to clipboard', "default", {autoClose: 3000});
+                }, () => {
+                  // alert('The Clipboard API is not available')
+                  showDialog({
+                    title: 'The Clipboard API is not available',
+                  });
+                });
+              }
+            },
+            tooltip: trans.__('Copy OAuth2 info to clipboard')
+          });
+          return getJsonButton;
+        }
+      );
+
+      toolbarRegistry.addFactory(
+        DRIVE_NAME,
+        'uploader',
+        (browser: FileBrowser) =>
+          new Uploader({
+            model: widget.model,
+            translator
+          })
+      );
+
+      toolbarRegistry.addFactory(
+        DRIVE_NAME,
+        'filename-searcher',
+        (browser: FileBrowser) => {
+          const searcher = FilenameSearcher({
+            updateFilter: (
+              filterFn: (item: string) => Partial<IScore> | null,
+              query?: string
+            ) => {
+              widget.model.setFilter(value => {
+                return filterFn(value.name.toLowerCase());
+              });
+            },
+            useFuzzyFilter: true,
+            placeholder: trans.__('Filter files by name'),
+            forceRefresh: false
+          });
+          searcher.addClass(FILTERBOX_CLASS);
+          return searcher;
+        }
+      );
+    }
+
+    app.shell.add(widget, 'left', { type: 'BoxDrive' });
 
     var cwindow: any = null
     var TokenEndpoint: string
